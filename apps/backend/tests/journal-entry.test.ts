@@ -1,0 +1,3 @@
+import { describe,expect,it } from 'vitest';
+import { JournalEntrySchema } from '@erp/contracts';
+describe('JournalEntrySchema',()=>{ it('acepta un asiento cuadrado',()=>{const result=JournalEntrySchema.safeParse({tenantId:'tenant-1',fecha:new Date(),glosa:'Venta',lines:[{accountId:'ar',debit:116,credit:0},{accountId:'sales',debit:0,credit:100},{accountId:'tax',debit:0,credit:16}]}); expect(result.success).toBe(true);}); it('rechaza un asiento descuadrado',()=>{const result=JournalEntrySchema.safeParse({tenantId:'tenant-1',fecha:new Date(),glosa:'Invalido',lines:[{accountId:'ar',debit:100,credit:0},{accountId:'sales',debit:0,credit:90}]}); expect(result.success).toBe(false);}); });

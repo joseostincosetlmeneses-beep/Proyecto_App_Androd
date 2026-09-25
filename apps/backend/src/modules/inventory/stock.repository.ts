@@ -1,0 +1,2 @@
+import { StockMovementModel } from './stock-movement.model.js';
+export async function getAvailableStock(tenantId:string,productId:string):Promise<number>{ const [result]=await StockMovementModel.aggregate<{balance:number}>([{ $match:{tenantId,productId}},{ $project:{signedQuantity:{ $cond:[{ $in:['$type',['ENTRADA','AJUSTE']]},'$quantity',{ $multiply:['$quantity',-1]}]}}},{ $group:{_id:null,balance:{$sum:'$signedQuantity'}}}]); return result?.balance??0; }

@@ -1,0 +1,5 @@
+import React from 'react';
+import { FlatList,ScrollView,Text,View,StyleSheet } from 'react-native';
+export type DataGridColumn<T>={key:keyof T;title:string;width?:number;render?:(value:T[keyof T],row:T)=>React.ReactNode};
+export function DataGrid<T extends {id:string}>({columns,rows,rowHeight=44}:{columns:DataGridColumn<T>[];rows:T[];rowHeight?:number}){return <ScrollView horizontal><View><View style={styles.header}>{columns.map(column=><Text key={String(column.key)} style={[styles.cell,{width:column.width??160}]}>{column.title}</Text>)}</View><FlatList data={rows} keyExtractor={row=>row.id} getItemLayout={(_,index)=>({length:rowHeight,offset:rowHeight*index,index})} renderItem={({item})=><View style={[styles.row,{height:rowHeight}]}>{columns.map(column=><Text key={String(column.key)} style={[styles.cell,{width:column.width??160}]}>{column.render?column.render(item[column.key],item):String(item[column.key]??'')}</Text>)}</View>} /></View></ScrollView>}
+const styles=StyleSheet.create({header:{flexDirection:'row',backgroundColor:'#123047'},row:{flexDirection:'row',borderBottomWidth:1,borderBottomColor:'#dbe4e8'},cell:{padding:12,color:'#102027'},});

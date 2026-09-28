@@ -8,8 +8,7 @@ export const tenantMiddleware: RequestHandler = (req, _res, next) => {
   const headerTenantId = req.header('x-tenant-id')?.trim();
   const authenticatedTenantId = req.authTenantId;
 
-  // A tenant from the JWT is authoritative. A client-supplied tenant header may
-  // only repeat that tenant; it can never switch the authenticated context.
+  // For authenticated API resources, the JWT tenant is authoritative.
   if (authenticatedTenantId) {
     if (headerTenantId && headerTenantId !== authenticatedTenantId) {
       next(new AppError(403, 'El tenant solicitado no coincide con el tenant autenticado.'));
@@ -22,12 +21,6 @@ export const tenantMiddleware: RequestHandler = (req, _res, next) => {
     return;
   }
 
-  // Keep the header path only for non-authenticated flows that explicitly need
-  // a tenant context (for example future public onboarding endpoints).
-  if (!headerTenantId) {
-    next(new AppError(401, 'Tenant requerido. Se necesita un token asociado a un tenant.'));
-    return;
-  }
-
-  next(new AppError(401, 'No existe un tenant autenticado para este recurso.'));
+  // Never allow an unauthenticated request to establish a tenant context.
+  next(new AppError(401, 'Autenticación y tenant asociado requeridos.'));
 };

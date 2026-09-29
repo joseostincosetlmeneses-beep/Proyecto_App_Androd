@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, 'audit/**']
+    branches: [main, 'audit/**', 'feat/**']
   pull_request:
     branches: [main]
 
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MONGODB_URI: mongodb://127.0.0.1:27017/erp_ci
-      JWT_SECRET: ci-test-secret-at-least-16
+      JWT_SECRET: ci-only-secret-with-at-least-32-characters
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -25,3 +25,5 @@ jobs:
       - run: pnpm --filter @erp/contracts build
       - run: pnpm --filter @erp/backend typecheck
       - run: pnpm --filter @erp/backend test
+      - run: pnpm --filter @erp/web-mobile typecheck
+      - run: pnpm --filter @erp/web-mobile build

@@ -1,1 +1,31 @@
-{"expo":{"name":"ERP Universal","slug":"erp-universal","version":"0.1.0","platforms":["android","ios","web"]}}
+{
+  "expo": {
+    "name": "Orbit ERP",
+    "slug": "orbit-erp",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050B18",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#050B18"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.joseostincos.orbiterp",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#050B18"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/icon.png"
+    },
+    "platforms": ["android", "ios", "web"]
+  }
+}

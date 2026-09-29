@@ -10,6 +10,12 @@ import type mongoose from 'mongoose';
 
 const money = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
+export function calculateInvoiceTotals(items: Array<{ quantity: number; unitPrice: number; taxRate: number }>) {
+  const subtotal = money(items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0));
+  const impuestos = money(items.reduce((sum, item) => sum + item.quantity * item.unitPrice * item.taxRate, 0));
+  return { subtotal, impuestos, total: money(subtotal + impuestos) };
+}
+
 export async function createInvoice(input: unknown) {
   const parsed = InvoiceSchema.safeParse(input);
   if (!parsed.success) {
@@ -45,9 +51,7 @@ export async function createInvoice(input: unknown) {
     };
   });
 
-  const subtotal = money(items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0));
-  const impuestos = money(items.reduce((sum, item) => sum + item.quantity * item.unitPrice * (item.taxRate / 100), 0));
-  const total = money(subtotal + impuestos);
+  const { subtotal, impuestos, total } = calculateInvoiceTotals(items);
 
   const invoice = {
     ...inputInvoice,

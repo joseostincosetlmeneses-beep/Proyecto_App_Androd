@@ -1,3 +1,19 @@
-import axios from 'axios';
-export const apiClient=axios.create({baseURL:process.env.EXPO_PUBLIC_API_URL??'http://localhost:3000/api'});
-apiClient.interceptors.request.use(config=>{const tenantId=localStorage.getItem('tenantId'); const token=localStorage.getItem('token'); if(tenantId)config.headers['x-tenant-id']=tenantId; if(token)config.headers.Authorization=`Bearer ${token}`; return config;});
+const configuredUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+
+export function getApiBaseUrl() {
+  return (configuredUrl || 'http://localhost:3000/api').replace(/\/$/, '');
+}
+
+export async function pingApi(timeoutMs = 3500): Promise<boolean> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const healthUrl = getApiBaseUrl().replace(/\/api$/, '') + '/health';
+    const response = await fetch(healthUrl, { signal: controller.signal });
+    return response.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}

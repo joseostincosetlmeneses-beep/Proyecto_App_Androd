@@ -4,11 +4,8 @@ import { env } from '../../config/env.js';
 import { AppError } from '../errors/app-error.js';
 
 export const authMiddleware: RequestHandler = (req, res, next) => {
-  // Rutas públicas que no requieren autenticación
   const publicPaths = ['/health', '/api/auth/login', '/api/auth/register'];
-  if (publicPaths.includes(req.path)) {
-    return next();
-  }
+  if (publicPaths.includes(req.path)) return next();
 
   const authHeader = req.header('authorization');
   const token = authHeader?.replace(/^Bearer\s+/i, '');
@@ -39,6 +36,7 @@ export const authMiddleware: RequestHandler = (req, res, next) => {
     };
 
     if (payload.tenantId) {
+      req.authTenantId = payload.tenantId;
       req.tenantId = payload.tenantId;
     }
 
@@ -50,9 +48,7 @@ export const authMiddleware: RequestHandler = (req, res, next) => {
 
 export function requireRoles(...requiredRoles: string[]): RequestHandler {
   return (req, _res, next) => {
-    if (!req.user) {
-      return next(new AppError(401, 'No autenticado'));
-    }
+    if (!req.user) return next(new AppError(401, 'No autenticado'));
     const hasRole = req.user.roles.some((role) => requiredRoles.includes(role));
     if (!hasRole) {
       return next(new AppError(403, `Permiso denegado. Se requiere uno de los siguientes roles: ${requiredRoles.join(', ')}`));

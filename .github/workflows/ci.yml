@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'audit/**', 'feat/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017/erp_ci
+      JWT_SECRET: ci-only-secret-with-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @erp/contracts build
+      - run: pnpm --filter @erp/backend typecheck
+      - run: pnpm --filter @erp/backend test
+      - run: pnpm --filter @erp/web-mobile typecheck
+      - run: pnpm --filter @erp/web-mobile build

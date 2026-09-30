@@ -43,7 +43,8 @@ export const InvoiceItemSchema = z.object({
   description: z.string(),
   quantity: z.number().positive(),
   unitPrice: z.number().nonnegative(),
-  taxRate: z.number().nonnegative().default(0)
+  // Decimal fraction: 0.16 represents 16%.
+  taxRate: z.number().min(0).max(1).default(0)
 });
 export type InvoiceItem = z.infer<typeof InvoiceItemSchema>;
 
@@ -105,10 +106,15 @@ export const PaginationQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
   search: z.string().optional(),
-  sortBy: z.string().optional(),
+  sortBy: z.enum(['issuedAt', 'number', 'total', 'customer.name']).optional(),
   sortOrder: z.enum(['asc', 'desc']).default('desc')
 });
 export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;
+
+export const ResourceIdParamsSchema = z.object({
+  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Identificador inválido')
+});
+export type ResourceIdParams = z.infer<typeof ResourceIdParamsSchema>;
 
 export const ApiErrorDetailSchema = z.object({
   field: z.string().optional(),

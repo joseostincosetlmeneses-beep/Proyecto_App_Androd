@@ -1,8 +1,63 @@
-import React,{useState} from 'react';
-import { SafeAreaView,Text,View,StyleSheet } from 'react-native';
-import { DataGrid } from './components/DataGrid/DataGrid';
+import React, { useEffect, useMemo, useState } from 'react';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { AppShell, type ScreenKey } from './components/AppShell';
 import { CommandPalette } from './components/CommandPalette';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-const rows=Array.from({length:1000},(_,index)=>({id:String(index),sku:`SKU-${index+1}`,name:`Producto ${index+1}`,stock:index%37}));
-export default function App(){const [paletteOpen,setPaletteOpen]=useState(false); useKeyboardShortcuts(()=>setPaletteOpen(true)); return <SafeAreaView style={styles.screen}><View style={styles.header}><Text style={styles.title}>ERP Universal</Text><Text style={styles.subtitle}>Inventario</Text></View><DataGrid rows={rows} columns={[{key:'sku',title:'SKU'},{key:'name',title:'Producto'},{key:'stock',title:'Stock'}]}/><CommandPalette visible={paletteOpen} onClose={()=>setPaletteOpen(false)}/></SafeAreaView>}
-const styles=StyleSheet.create({screen:{flex:1,backgroundColor:'#f4f7f8'},header:{padding:24,backgroundColor:'#123047'},title:{fontSize:26,fontWeight:'700',color:'white'},subtitle:{color:'#a9d6c9',marginTop:4}});
+import { ContactsScreen, DashboardScreen, InventoryScreen, ProfileScreen, SalesScreen } from './screens/Screens';
+import { getApiBaseUrl, pingApi } from './services/api.client';
+import { colors } from './theme';
+
+export default function App() {
+  const { height } = useWindowDimensions();
+  const [active, setActive] = useState<ScreenKey>('dashboard');
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [apiOnline, setApiOnline] = useState<boolean | null>(null);
+
+  useKeyboardShortcuts(() => setPaletteOpen(true));
+
+  useEffect(() => {
+    let mounted = true;
+    pingApi().then((online) => {
+      if (mounted) setApiOnline(online);
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  const content = useMemo(() => {
+    switch (active) {
+      case 'sales': return <SalesScreen />;
+      case 'inventory': return <InventoryScreen />;
+      case 'contacts': return <ContactsScreen />;
+      case 'profile': return <ProfileScreen apiOnline={apiOnline} apiUrl={getApiBaseUrl()} />;
+      default: return <DashboardScreen />;
+    }
+  }, [active, apiOnline]);
+
+  return (
+    <View style={[styles.app, { minHeight: height }]}>
+      <AppShell
+        active={active}
+        apiOnline={apiOnline}
+        onNavigate={setActive}
+        onOpenCommands={() => setPaletteOpen(true)}
+      >
+        {content}
+      </AppShell>
+      <CommandPalette
+        visible={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onSelect={(screen) => {
+          setActive(screen);
+          setPaletteOpen(false);
+        }}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  app: {
+    flex: 1,
+    backgroundColor: colors.background
+  }
+});

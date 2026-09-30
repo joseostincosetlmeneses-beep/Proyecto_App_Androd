@@ -1,5 +1,5 @@
 import React, { type PropsWithChildren } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Brand, IconButton, SearchField, StatusPill } from './ui';
 import { colors, radius, spacing } from '../theme';
 
@@ -102,7 +102,11 @@ function NavButton({
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.background },
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0
+  },
   ambientTop: { position: 'absolute', width: 500, height: 500, borderRadius: 250, backgroundColor: colors.glow, top: -360, right: -120 },
   ambientSide: { position: 'absolute', width: 340, height: 340, borderRadius: 170, backgroundColor: 'rgba(21, 87, 200, 0.10)', bottom: -220, left: -180 },
   shell: { flex: 1, flexDirection: 'row' },
@@ -124,13 +128,13 @@ const styles = StyleSheet.create({
   workspaceName: { color: colors.text, fontSize: 11, fontWeight: '700' },
   workspaceRole: { color: colors.textDim, fontSize: 9, marginTop: 3 },
   chevron: { color: colors.textDim, fontSize: 20 },
-  main: { flex: 1 },
+  main: { flex: 1, minWidth: 0 },
   topbar: { minHeight: 72, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border, backgroundColor: 'rgba(5, 11, 24, 0.88)' },
   topActions: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   commandButton: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primaryDark, borderWidth: 1, borderColor: colors.primaryBright },
   commandGlyph: { color: colors.text, fontSize: 17, fontWeight: '700' },
-  content: { flex: 1 },
-  bottomNav: { position: 'absolute', left: 12, right: 12, bottom: 10, height: 68, borderRadius: 23, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.overlay, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 7, shadowColor: '#000000', shadowOpacity: 0.48, shadowRadius: 24, shadowOffset: { width: 0, height: 12 } },
+  content: { flex: 1, minWidth: 0 },
+  bottomNav: { position: 'absolute', left: 12, right: 12, bottom: 16, height: 64, borderRadius: 23, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.overlay, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 7, shadowColor: '#000000', shadowOpacity: 0.48, shadowRadius: 24, shadowOffset: { width: 0, height: 12 } },
   bottomItem: { flex: 1, minWidth: 54, height: 54, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 3 },
   bottomItemActive: { backgroundColor: colors.glow },
   bottomGlyph: { color: colors.textDim, fontSize: 18, height: 22 },
@@ -139,4 +143,5 @@ const styles = StyleSheet.create({
   bottomLabelActive: { color: colors.text },
   pressed: { opacity: 0.7 }
 });
+
 

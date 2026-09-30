@@ -108,10 +108,11 @@ export function InventoryScreen() {
         {inventory.map((item, index) => (
           <View key={item.id} style={[styles.productRow, index === inventory.length - 1 && styles.rowLast]}>
             <View style={styles.productIcon}><Text style={styles.productGlyph}>◇</Text></View>
-            <View style={styles.productCopy}><Text style={styles.rowTitle}>{item.name}</Text><Text style={styles.rowDetail}>{item.sku} · {item.price}</Text></View>
-            <View style={styles.stockBlock}><Text style={styles.stockValue}>{item.stock}</Text><Text style={styles.stockLabel}>unidades</Text></View>
-            <StatusPill label={item.status} tone={item.tone} />
-            <Text style={styles.chevron}>›</Text>
+            <View style={styles.productCopy}><Text numberOfLines={1} style={styles.rowTitle}>{item.name}</Text><Text numberOfLines={1} style={styles.rowDetail}>{item.sku} · {item.price}</Text></View>
+            <View style={styles.rowMeta}>
+              <View style={styles.stockBlock}><Text style={styles.stockValue}>{item.stock}</Text><Text style={styles.stockLabel}>unidades</Text></View>
+              <StatusPill label={item.status} tone={item.tone} />
+            </View>
           </View>
         ))}
       </Card>
@@ -133,10 +134,11 @@ export function SalesScreen() {
         {invoices.map((invoice, index) => (
           <View key={invoice.number} style={[styles.invoiceRow, index === invoices.length - 1 && styles.rowLast]}>
             <View style={styles.invoiceIcon}><Text style={styles.invoiceGlyph}>▤</Text></View>
-            <View style={styles.invoiceCopy}><Text style={styles.rowTitle}>{invoice.number}</Text><Text style={styles.rowDetail}>{invoice.customer} · {invoice.date}</Text></View>
-            <Text style={styles.amount}>{invoice.amount}</Text>
-            <StatusPill label={invoice.status} tone={invoice.tone} />
-            <Text style={styles.chevron}>›</Text>
+            <View style={styles.invoiceCopy}><Text numberOfLines={1} style={styles.rowTitle}>{invoice.number}</Text><Text numberOfLines={1} style={styles.rowDetail}>{invoice.customer} · {invoice.date}</Text></View>
+            <View style={styles.rowMeta}>
+              <Text style={styles.amount}>{invoice.amount}</Text>
+              <StatusPill label={invoice.status} tone={invoice.tone} />
+            </View>
           </View>
         ))}
       </Card>
@@ -232,11 +234,12 @@ const styles = StyleSheet.create({
   filterActive: { backgroundColor: colors.primaryDark, borderColor: colors.primaryBright },
   filterText: { color: colors.textMuted, fontSize: 11, fontWeight: '600' },
   filterTextActive: { color: colors.text },
-  productRow: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 10 },
+  productRow: { minHeight: 86, flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 10 },
   productIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.backgroundSoft, borderWidth: 1, borderColor: colors.border },
   productGlyph: { color: colors.primaryBright, fontSize: 18 },
-  productCopy: { flex: 1, minWidth: 120 },
-  stockBlock: { minWidth: 62, alignItems: 'flex-end' },
+  productCopy: { flex: 1, minWidth: 0 },
+  rowMeta: { width: 92, flexShrink: 0, alignItems: 'flex-end', gap: 7 },
+  stockBlock: { alignItems: 'flex-end' },
   stockValue: { color: colors.text, fontSize: 14, fontWeight: '700' },
   stockLabel: { color: colors.textDim, fontSize: 8, marginTop: 2 },
   chevron: { color: colors.textDim, fontSize: 23, marginLeft: 2 },
@@ -245,11 +248,11 @@ const styles = StyleSheet.create({
   salesSmall: { flex: 1, minWidth: 190 },
   salesValue: { color: colors.text, fontSize: 32, fontWeight: '700', marginVertical: 9 },
   positive: { color: colors.success, fontSize: 10 },
-  invoiceRow: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 10 },
+  invoiceRow: { minHeight: 86, flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 10 },
   invoiceIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.glow, borderWidth: 1, borderColor: colors.borderStrong },
   invoiceGlyph: { color: colors.primaryBright, fontSize: 17 },
-  invoiceCopy: { flex: 1, minWidth: 120 },
-  amount: { color: colors.text, fontSize: 12, fontWeight: '700', minWidth: 72, textAlign: 'right' },
+  invoiceCopy: { flex: 1, minWidth: 0 },
+  amount: { color: colors.text, fontSize: 12, fontWeight: '700', textAlign: 'right' },
   contactStats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginBottom: spacing.lg },
   contactStat: { flex: 1, minWidth: 180 },
   contactRow: { minHeight: 74, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 11 },
@@ -264,4 +267,5 @@ const styles = StyleSheet.create({
   profileName: { color: colors.text, fontSize: 17, fontWeight: '700' },
   settingRow: { minHeight: 70, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 12 }
 });
+
 

@@ -172,6 +172,29 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
+router.get('/me', async (req, res, next) => {
+  try {
+    const user = await UserModel.findOne({
+      _id: req.user?.id,
+      tenantId: req.tenantId,
+      isActive: true,
+      emailVerifiedAt: { $ne: null }
+    });
+
+    if (!user) {
+      res.status(401).json({ success: false, error: 'La sesión ya no es válida.' });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: { id: user.id, tenantId: user.tenantId, email: user.email, name: user.name, roles: user.roles }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 function verificationPage(title: string, message: string, success: boolean) {
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;background:#050b18;color:#f5f7fb;font-family:Arial,sans-serif;display:grid;min-height:100vh;place-items:center"><main style="max-width:560px;margin:24px;background:#0d1830;border:1px solid #1f3764;border-radius:22px;padding:36px;text-align:center"><div style="font-size:48px">${success ? '✓' : '!'}</div><h1 style="color:${success ? '#4ca6ff' : '#ffb648'}">${title}</h1><p style="color:#aab5ca;line-height:1.6">${message}</p></main></body></html>`;
 }

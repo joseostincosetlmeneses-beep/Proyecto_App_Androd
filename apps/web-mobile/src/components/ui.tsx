@@ -39,8 +39,8 @@ export function Card({ children, style }: PropsWithChildren<{ style?: StyleProp<
 export function SectionTitle({ title, action }: { title: string; action?: string }) {
   return (
     <View style={styles.sectionTitleRow}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {action ? <Text style={styles.sectionAction}>{action}</Text> : null}
+      <Text numberOfLines={1} style={styles.sectionTitle}>{title}</Text>
+      {action ? <Text numberOfLines={1} style={styles.sectionAction}>{action}</Text> : null}
     </View>
   );
 }
@@ -155,11 +155,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 }
   },
   sectionTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
-  sectionAction: { color: colors.primaryBright, fontSize: 12, fontWeight: '600' },
-  pill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 5 },
+  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700', flexShrink: 1 },
+  sectionAction: { color: colors.primaryBright, fontSize: 12, fontWeight: '600', flexShrink: 1, textAlign: 'right', marginLeft: 10 },
+  pill: { alignSelf: 'flex-start', maxWidth: '100%', flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 5 },
   pillDot: { width: 5, height: 5, borderRadius: 3 },
-  pillText: { fontSize: 10, fontWeight: '700' },
+  pillText: { fontSize: 10, fontWeight: '700', flexShrink: 1 },
   metricCard: { flex: 1, minWidth: 150, minHeight: 142, justifyContent: 'space-between' },
   metricTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   metricIcon: { width: 36, height: 36, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
@@ -183,4 +183,5 @@ const styles = StyleSheet.create({
   emptyTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginTop: 14 },
   emptyDescription: { color: colors.textMuted, fontSize: 12, textAlign: 'center', marginTop: 6, maxWidth: 300, lineHeight: 18 }
 });
+
 

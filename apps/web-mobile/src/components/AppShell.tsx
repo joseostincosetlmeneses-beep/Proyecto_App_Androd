@@ -2,6 +2,7 @@ import React, { type PropsWithChildren } from 'react';
 import { Platform, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Brand, IconButton, SearchField, StatusPill } from './ui';
 import { colors, radius, spacing } from '../theme';
+import type { AuthUser } from '../services/auth.client';
 
 export type ScreenKey = 'dashboard' | 'sales' | 'inventory' | 'contacts' | 'profile';
 
@@ -18,12 +19,14 @@ export function AppShell({
   onNavigate,
   onOpenCommands,
   apiOnline,
+  user,
   children
 }: PropsWithChildren<{
   active: ScreenKey;
   onNavigate: (screen: ScreenKey) => void;
   onOpenCommands: () => void;
   apiOnline: boolean | null;
+  user: AuthUser;
 }>) {
   const { width } = useWindowDimensions();
   const desktop = width >= 900;
@@ -42,8 +45,8 @@ export function AppShell({
               ))}
             </View>
             <View style={styles.sideFooter}>
-              <View style={styles.workspaceIcon}><Text style={styles.workspaceInitial}>O</Text></View>
-              <View style={styles.workspaceCopy}><Text style={styles.workspaceName}>Empresa principal</Text><Text style={styles.workspaceRole}>Administrador</Text></View>
+              <View style={styles.workspaceIcon}><Text style={styles.workspaceInitial}>{user.name.slice(0, 1).toUpperCase()}</Text></View>
+              <View style={styles.workspaceCopy}><Text numberOfLines={1} style={styles.workspaceName}>{user.name}</Text><Text style={styles.workspaceRole}>{user.roles.includes('admin') ? 'Administrador' : 'Usuario'}</Text></View>
               <Text style={styles.chevron}>›</Text>
             </View>
           </View>

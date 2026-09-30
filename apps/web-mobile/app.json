@@ -13,6 +13,7 @@
       "backgroundColor": "#050B18"
     },
     "assetBundlePatterns": ["**/*"],
+    "plugins": ["expo-secure-store"],
     "android": {
       "package": "com.joseostincos.orbiterp",
       "versionCode": 1,
@@ -29,3 +30,4 @@
     "platforms": ["android", "ios", "web"]
   }
 }
+

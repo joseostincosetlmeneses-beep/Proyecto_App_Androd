@@ -1,7 +1,7 @@
 const configuredUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 
 export function getApiBaseUrl() {
-  return (configuredUrl || 'http://localhost:3000/api').replace(/\/$/, '');
+  return (configuredUrl || 'https://orbit-erp-api-p9vp.onrender.com/api').replace(/\/$/, '');
 }
 
 export async function pingApi(timeoutMs = 3500): Promise<boolean> {
@@ -17,3 +17,4 @@ export async function pingApi(timeoutMs = 3500): Promise<boolean> {
     clearTimeout(timeout);
   }
 }
+

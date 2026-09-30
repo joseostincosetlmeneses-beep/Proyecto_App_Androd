@@ -2,7 +2,13 @@ import type { RequestHandler } from 'express';
 import { AppError } from '../errors/app-error.js';
 
 export const tenantMiddleware: RequestHandler = (req, _res, next) => {
-  const publicPaths = ['/health', '/api/auth/login', '/api/auth/register'];
+  const publicPaths = [
+    '/health',
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/verify-email',
+    '/api/auth/resend-verification'
+  ];
   if (publicPaths.includes(req.path)) return next();
 
   const headerTenantId = req.header('x-tenant-id')?.trim();
@@ -24,3 +30,4 @@ export const tenantMiddleware: RequestHandler = (req, _res, next) => {
   // Never allow an unauthenticated request to establish a tenant context.
   next(new AppError(401, 'Autenticación y tenant asociado requeridos.'));
 };
+

@@ -4,7 +4,13 @@ import { env } from '../../config/env.js';
 import { AppError } from '../errors/app-error.js';
 
 export const authMiddleware: RequestHandler = (req, res, next) => {
-  const publicPaths = ['/health', '/api/auth/login', '/api/auth/register'];
+  const publicPaths = [
+    '/health',
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/verify-email',
+    '/api/auth/resend-verification'
+  ];
   if (publicPaths.includes(req.path)) return next();
 
   const authHeader = req.header('authorization');
@@ -56,3 +62,4 @@ export function requireRoles(...requiredRoles: string[]): RequestHandler {
     next();
   };
 }
+

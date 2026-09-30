@@ -6,6 +6,7 @@ import { auditMiddleware } from './core/middlewares/audit.middleware.js';
 import salesRoutes from './modules/sales/sales.routes.js';
 import { AppError } from './core/errors/app-error.js';
 import { env } from './config/env.js';
+import authRoutes from './modules/auth/auth.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -36,6 +37,7 @@ export function createApp(): Express {
   app.use(auditMiddleware);
 
   // Módulos de la API
+  app.use('/api/auth', authRoutes);
   app.use('/api/sales', salesRoutes);
 
   // Manejador global centralizado de errores
@@ -60,3 +62,4 @@ export function createApp(): Express {
   app.use(errorHandler);
   return app;
 }
+

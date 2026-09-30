@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { activityBars, contacts, inventory, invoices, metrics, recentActivity } from '../data/demo';
 import { Card, MetricCard, ProgressBar, SectionTitle, StatusPill } from '../components/ui';
 import { colors, radius, spacing } from '../theme';
+import type { AuthUser } from '../services/auth.client';
 
 function ScreenHeading({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
   return (
@@ -61,10 +62,11 @@ function RecentList() {
   );
 }
 
-export function DashboardScreen() {
+export function DashboardScreen({ userName }: { userName: string }) {
+  const firstName = userName.trim().split(/\s+/)[0] || 'usuario';
   return (
     <ScrollView contentContainerStyle={styles.screenContent} showsVerticalScrollIndicator={false}>
-      <ScreenHeading eyebrow="RESUMEN GENERAL" title="Buenos días, José" subtitle="Tu operación está estable. Hay 3 alertas que requieren atención." />
+      <ScreenHeading eyebrow="RESUMEN GENERAL" title={`Buenos días, ${firstName}`} subtitle="Tu operación está estable. Hay 3 alertas que requieren atención." />
       <View style={styles.metricGrid}>
         {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
       </View>
@@ -169,15 +171,19 @@ export function ContactsScreen() {
   );
 }
 
-export function ProfileScreen({ apiOnline, apiUrl }: { apiOnline: boolean | null; apiUrl: string }) {
+export function ProfileScreen({ apiOnline, apiUrl, user, onLogout }: { apiOnline: boolean | null; apiUrl: string; user: AuthUser; onLogout: () => void }) {
+  const initials = user.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'U';
   return (
     <ScrollView contentContainerStyle={styles.screenContent} showsVerticalScrollIndicator={false}>
       <ScreenHeading eyebrow="CUENTA Y CONFIGURACIÓN" title="Perfil" subtitle="Identidad, preferencias y estado de conexión." />
       <Card style={styles.profileCard}>
-        <View style={styles.profileAvatar}><Text style={styles.profileInitials}>JM</Text></View>
-        <View style={styles.profileCopy}><Text style={styles.profileName}>José Meneses</Text><Text style={styles.rowDetail}>Administrador · Empresa principal</Text></View>
-        <StatusPill label="Administrador" tone="info" />
+        <View style={styles.profileAvatar}><Text style={styles.profileInitials}>{initials}</Text></View>
+        <View style={styles.profileCopy}><Text style={styles.profileName}>{user.name}</Text><Text style={styles.rowDetail}>{user.email}</Text></View>
+        <StatusPill label={user.roles.includes('admin') ? 'Administrador' : 'Usuario'} tone="info" />
       </Card>
+      <Pressable accessibilityRole="button" onPress={onLogout} style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutPressed]}>
+        <Text style={styles.logoutText}>Cerrar sesión</Text>
+      </Pressable>
       <Card>
         <SectionTitle title="Estado del sistema" />
         <View style={styles.settingRow}><View><Text style={styles.rowTitle}>API del ERP</Text><Text numberOfLines={1} style={styles.rowDetail}>{apiUrl}</Text></View><StatusPill label={apiOnline === null ? 'Comprobando' : apiOnline ? 'En línea' : 'Modo demostración'} tone={apiOnline ? 'success' : apiOnline === false ? 'warning' : 'info'} /></View>
@@ -265,7 +271,10 @@ const styles = StyleSheet.create({
   profileInitials: { color: colors.text, fontSize: 17, fontWeight: '800' },
   profileCopy: { flex: 1 },
   profileName: { color: colors.text, fontSize: 17, fontWeight: '700' },
-  settingRow: { minHeight: 70, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 12 }
+  settingRow: { minHeight: 70, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 12 },
+  logoutButton: { minHeight: 48, marginTop: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: 'rgba(255, 90, 107, 0.35)', backgroundColor: 'rgba(255, 90, 107, 0.08)', alignItems: 'center', justifyContent: 'center' },
+  logoutText: { color: colors.danger, fontSize: 12, fontWeight: '800' },
+  logoutPressed: { opacity: 0.7 }
 });
 
 

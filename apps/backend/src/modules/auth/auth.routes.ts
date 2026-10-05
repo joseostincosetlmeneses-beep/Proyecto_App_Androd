@@ -7,6 +7,7 @@ import { UserModel } from './user.model.js';
 import { hashPassword, verifyPassword } from './password.service.js';
 import { createVerificationToken, hashVerificationToken } from './token.service.js';
 import { sendVerificationEmail, sendWelcomeEmail } from './email.service.js';
+import { seedSampleData } from '../setup/sample-data.service.js';
 
 const router: Router = Router();
 
@@ -99,6 +100,12 @@ router.get('/verify-email', async (req, res, next) => {
     user.verificationTokenHash = null;
     user.verificationExpiresAt = null;
     await user.save();
+
+    try {
+      await seedSampleData(user.tenantId);
+    } catch (error) {
+      console.error('[Initial data error]', error);
+    }
 
     try {
       await sendWelcomeEmail({ email: user.email, name: user.name, userId: user.id });

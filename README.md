@@ -78,6 +78,10 @@ La interfaz responsive de Android y web comparte autenticacion y datos reales po
 - alta y edicion de productos, existencias y movimientos de inventario;
 - alta y edicion de clientes y proveedores;
 - emision, cobro y cancelacion de facturas con afectacion de inventario y contabilidad;
-- generacion de facturas PDF mediante enlaces firmados de corta duracion.
+- carga idempotente de datos iniciales por empresa (productos, contactos, existencias y facturas de ejemplo);
+- generacion de facturas PDF mediante enlaces firmados de corta duracion;
+- exportacion completa de productos, contactos y facturas en PDF y Excel (`.xlsx`).
 
 Los calculos de precios, impuestos y totales se realizan en la API. Los secretos de MongoDB, JWT y Resend permanecen exclusivamente en el backend.
+
+Las cuentas nuevas reciben los datos iniciales al confirmar su correo. En una cuenta existente, el administrador puede cargarlos desde **Dashboard > Datos y exportaciones > Cargar datos iniciales**. La misma seccion contiene las descargas PDF y Excel; sus enlaces firmados vencen despues de cinco minutos.

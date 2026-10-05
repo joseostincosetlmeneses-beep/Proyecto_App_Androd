@@ -11,6 +11,8 @@ import inventoryRoutes from './modules/inventory/inventory.routes.js';
 import contactsRoutes from './modules/contacts/contacts.routes.js';
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import documentsRoutes from './modules/documents/documents.routes.js';
+import setupRoutes from './modules/setup/setup.routes.js';
+import exportRoutes from './modules/exports/export.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -49,6 +51,8 @@ export function createApp(): Express {
   app.use('/api/inventory', inventoryRoutes);
   app.use('/api/contacts', contactsRoutes);
   app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/setup', setupRoutes);
+  app.use('/api/exports', exportRoutes);
 
   // Manejador global centralizado de errores
   const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {

@@ -40,7 +40,7 @@ export function SalesScreen({ session }: { session: AuthSession }) {
     setBusy(true); setModalError('');
     try {
       await createInvoice(session, {
-        number: `F-${Date.now().toString().slice(-8)}`,
+        number: `F-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
         customer: { id: customer.id, name: customer.name, taxId: customer.taxId || undefined },
         items: selected.map(({ product, quantity }) => ({ productId: product!.id, sku: product!.sku, quantity, taxRate: 0.16 })),
         issuedAt: new Date().toISOString()

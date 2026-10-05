@@ -1,4 +1,4 @@
-import { InvoiceSchema, JournalEntrySchema, type PaginationQuery } from '@erp/contracts';
+import { CreateInvoiceInputSchema, InvoiceSchema, JournalEntrySchema, type PaginationQuery } from '@erp/contracts';
 import { withTransaction } from '../../core/database/transaction.helper.js';
 import { ValidationError, NotFoundError } from '../../core/errors/app-error.js';
 import { InvoiceModel } from './invoice.model.js';
@@ -17,7 +17,7 @@ export function calculateInvoiceTotals(items: Array<{ quantity: number; unitPric
 }
 
 export async function createInvoice(input: unknown) {
-  const parsed = InvoiceSchema.safeParse(input);
+  const parsed = CreateInvoiceInputSchema.extend({ tenantId: InvoiceSchema.shape.tenantId }).safeParse(input);
   if (!parsed.success) {
     throw new ValidationError(
       'Datos de factura inválidos',
@@ -58,7 +58,9 @@ export async function createInvoice(input: unknown) {
     items,
     subtotal,
     impuestos,
-    total
+    total,
+    status: 'pending' as const,
+    paidAt: null
   };
 
   const journal = JournalEntrySchema.safeParse({
@@ -99,6 +101,7 @@ export async function createInvoice(input: unknown) {
     }
 
     const [saved] = await InvoiceModel.create([invoice], { session });
+    if (!saved) throw new ValidationError('No fue posible guardar la factura.');
 
     await StockMovementModel.insertMany(
       items.map((item) => ({
@@ -114,7 +117,7 @@ export async function createInvoice(input: unknown) {
 
     await JournalEntryModel.create([journal.data], { session });
 
-    return saved;
+    return { ...saved.toObject(), id: saved.id };
   });
 }
 
@@ -144,7 +147,7 @@ export async function listInvoices(tenantId: string, options: PaginationQuery) {
   ]);
 
   return {
-    items: invoices,
+    items: invoices.map((invoice) => ({ ...invoice, id: String(invoice._id), status: invoice.status ?? 'pending' })),
     meta: { page, limit, total, totalPages: Math.ceil(total / limit) }
   };
 }
@@ -152,5 +155,63 @@ export async function listInvoices(tenantId: string, options: PaginationQuery) {
 export async function getInvoiceById(tenantId: string, id: string) {
   const invoice = await InvoiceModel.findOne({ _id: id, tenantId }).lean();
   if (!invoice) throw new NotFoundError(`Factura con id '${id}' no encontrada`);
-  return invoice;
+  return { ...invoice, id: String(invoice._id), status: invoice.status ?? 'pending' };
+}
+
+export async function updateInvoiceStatus(tenantId: string, id: string, status: 'paid' | 'cancelled') {
+  const invoice = await InvoiceModel.findOne({ _id: id, tenantId });
+  if (!invoice) throw new NotFoundError(`Factura con id '${id}' no encontrada`);
+  const currentStatus = invoice.status ?? 'pending';
+
+  if (currentStatus === 'cancelled') {
+    throw new ValidationError('La factura ya está cancelada.');
+  }
+  if (status === 'paid') {
+    if (currentStatus === 'paid') return { ...invoice.toObject(), id: invoice.id };
+    invoice.status = 'paid';
+    invoice.paidAt = new Date();
+    await invoice.save();
+    return { ...invoice.toObject(), id: invoice.id };
+  }
+
+  return withTransaction(async (session: mongoose.ClientSession) => {
+    for (const item of invoice.items) {
+      await StockBalanceModel.updateOne(
+        { tenantId, productId: item.productId },
+        { $inc: { currentStock: item.quantity } },
+        { session, upsert: true }
+      );
+    }
+
+    await StockMovementModel.insertMany(
+      invoice.items.map((item) => ({
+        tenantId,
+        productId: item.productId,
+        type: 'ENTRADA',
+        quantity: item.quantity,
+        referenceId: `CANCELACION:${invoice.number}`,
+        occurredAt: new Date()
+      })),
+      { session }
+    );
+
+    await JournalEntryModel.create([{
+      tenantId,
+      fecha: new Date(),
+      glosa: `Cancelación factura ${invoice.number}`,
+      lines: [
+        { accountId: 'accounts-receivable', debit: 0, credit: invoice.total },
+        { accountId: 'sales', debit: invoice.subtotal, credit: 0 },
+        { accountId: 'taxes-payable', debit: invoice.impuestos, credit: 0 }
+      ]
+    }], { session });
+
+    const updated = await InvoiceModel.findOneAndUpdate(
+      { _id: id, tenantId, status: { $ne: 'cancelled' } },
+      { $set: { status: 'cancelled', paidAt: null } },
+      { new: true, session }
+    );
+    if (!updated) throw new ValidationError('La factura ya fue cancelada.');
+    return { ...updated.toObject(), id: updated.id };
+  });
 }

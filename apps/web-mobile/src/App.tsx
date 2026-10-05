@@ -67,11 +67,11 @@ export default function App() {
   const content = useMemo(() => {
     if (!session) return null;
     switch (active) {
-      case 'sales': return <SalesScreen />;
-      case 'inventory': return <InventoryScreen />;
-      case 'contacts': return <ContactsScreen />;
+      case 'sales': return <SalesScreen session={session} />;
+      case 'inventory': return <InventoryScreen session={session} />;
+      case 'contacts': return <ContactsScreen session={session} />;
       case 'profile': return <ProfileScreen apiOnline={apiOnline} apiUrl={getApiBaseUrl()} user={session!.user} onLogout={handleLogout} />;
-      default: return <DashboardScreen userName={session!.user.name} />;
+      default: return <DashboardScreen session={session} />;
     }
   }, [active, apiOnline, session]);
 

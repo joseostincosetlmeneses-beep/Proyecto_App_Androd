@@ -42,7 +42,7 @@ pnpm --filter @erp/web-mobile start
 4. Escanea el codigo QR con Expo Go.
 5. Si Windows solicita acceso al firewall, permite Node.js en redes privadas.
 
-Si el celular no puede alcanzar la computadora, confirma que ambos estan en la misma Wi-Fi, que `EXPO_PUBLIC_API_URL` usa la IP LAN correcta y que el puerto 3000 esta permitido en la red privada. Para abrir solamente la interfaz, la aplicacion incluye datos demostrativos y muestra el estado de la API en el perfil.
+Si el celular no puede alcanzar la computadora, confirma que ambos estan en la misma Wi-Fi, que `EXPO_PUBLIC_API_URL` usa la IP LAN correcta y que el puerto 3000 esta permitido en la red privada. La aplicacion necesita acceso a la API para cargar y modificar datos.
 
 ## Generar un APK instalable
 
@@ -71,4 +71,13 @@ pnpm --filter @erp/web-mobile build
 
 ## Estado funcional
 
-La interfaz responsive incluye tablero, ventas, inventario, contactos y perfil. Actualmente usa datos demostrativos para esas vistas y comprueba en vivo la disponibilidad de la API. La persistencia completa de los formularios requerira conectar cada flujo visual con sus endpoints de autenticacion, catalogos, contactos e inventario.
+La interfaz responsive de Android y web comparte autenticacion y datos reales por empresa. Incluye:
+
+- registro, confirmacion de correo, bienvenida e inicio de sesion;
+- tablero con ventas, cuentas por cobrar, inventario y contactos;
+- alta y edicion de productos, existencias y movimientos de inventario;
+- alta y edicion de clientes y proveedores;
+- emision, cobro y cancelacion de facturas con afectacion de inventario y contabilidad;
+- generacion de facturas PDF mediante enlaces firmados de corta duracion.
+
+Los calculos de precios, impuestos y totales se realizan en la API. Los secretos de MongoDB, JWT y Resend permanecen exclusivamente en el backend.

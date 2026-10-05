@@ -7,6 +7,10 @@ import salesRoutes from './modules/sales/sales.routes.js';
 import { AppError } from './core/errors/app-error.js';
 import { env } from './config/env.js';
 import authRoutes from './modules/auth/auth.routes.js';
+import inventoryRoutes from './modules/inventory/inventory.routes.js';
+import contactsRoutes from './modules/contacts/contacts.routes.js';
+import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
+import documentsRoutes from './modules/documents/documents.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -31,6 +35,9 @@ export function createApp(): Express {
     });
   });
 
+  // Los documentos usan enlaces firmados, breves y de un solo recurso.
+  app.use('/api/documents', documentsRoutes);
+
   // Middlewares globales de seguridad y contexto
   app.use(authMiddleware);
   app.use(tenantMiddleware);
@@ -39,6 +46,9 @@ export function createApp(): Express {
   // Módulos de la API
   app.use('/api/auth', authRoutes);
   app.use('/api/sales', salesRoutes);
+  app.use('/api/inventory', inventoryRoutes);
+  app.use('/api/contacts', contactsRoutes);
+  app.use('/api/dashboard', dashboardRoutes);
 
   // Manejador global centralizado de errores
   const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {

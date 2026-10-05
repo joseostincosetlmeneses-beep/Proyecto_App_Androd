@@ -11,3 +11,5 @@ coverage/
 .corepack-cache/
 .npm-cache/
 .pnpm-store/
+.turbo/
+**/.turbo/

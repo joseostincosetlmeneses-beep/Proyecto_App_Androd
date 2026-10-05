@@ -30,7 +30,9 @@ const schema = new mongoose.Schema(
     subtotal: { type: Number, required: true, min: 0 },
     impuestos: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 },
-    issuedAt: { type: Date, required: true }
+    issuedAt: { type: Date, required: true },
+    status: { type: String, enum: ['pending', 'paid', 'cancelled'], default: 'pending', required: true },
+    paidAt: { type: Date, default: null }
   },
   { timestamps: true }
 );

@@ -24,7 +24,7 @@ export function DashboardScreen({ session }: { session: AuthSession }) {
 
   async function loadSamples() {
     setActionBusy(true); setActionMessage(''); setError('');
-    try { const result = await seedSampleData(session); setActionMessage(`${result.message} ${result.products} productos, ${result.contacts} contactos y ${result.invoices} facturas.`); await load(); }
+    try { const result = await seedSampleData(session); setActionMessage(`${result.message} ${result.products} productos, ${result.customers} clientes y ${result.invoices} facturas.`); await load(); }
     catch (cause) { setError(messageFrom(cause)); }
     finally { setActionBusy(false); }
   }

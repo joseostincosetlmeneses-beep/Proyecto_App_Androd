@@ -109,5 +109,5 @@ export const getInvoices = (session: AuthSession) => request<InvoiceRecord[]>(se
 export const createInvoice = (session: AuthSession, invoice: NewInvoice) => request<InvoiceRecord>(session, '/sales/invoices', { method: 'POST', body: JSON.stringify(invoice) });
 export const setInvoiceStatus = (session: AuthSession, id: string, status: 'paid' | 'cancelled') => request<InvoiceRecord>(session, `/sales/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
 export const getInvoiceDocumentLink = (session: AuthSession, id: string) => request<{ url: string; expiresInSeconds: number }>(session, `/sales/invoices/${id}/document-link`, { method: 'POST' });
-export const seedSampleData = (session: AuthSession) => request<{ products: number; contacts: number; invoices: number; message: string }>(session, '/setup/sample-data', { method: 'POST' });
+export const seedSampleData = (session: AuthSession) => request<{ products: number; contacts: number; customers: number; invoices: number; message: string }>(session, '/setup/sample-data', { method: 'POST' });
 export const getDataExportLink = (session: AuthSession, format: 'pdf' | 'xlsx') => request<{ url: string; expiresInSeconds: number }>(session, '/exports/link', { method: 'POST', body: JSON.stringify({ format }) });

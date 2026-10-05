@@ -78,7 +78,7 @@ La interfaz responsive de Android y web comparte autenticacion y datos reales po
 - alta y edicion de productos, existencias y movimientos de inventario;
 - alta y edicion de clientes y proveedores;
 - emision, cobro y cancelacion de facturas con afectacion de inventario y contabilidad;
-- carga idempotente de datos iniciales por empresa (productos, contactos, existencias y facturas de ejemplo);
+- carga idempotente de datos iniciales por empresa (1,000 productos, 1,000 clientes, existencias y facturas de ejemplo);
 - generacion de facturas PDF mediante enlaces firmados de corta duracion;
 - exportacion completa de productos, contactos y facturas en PDF y Excel (`.xlsx`).
 

@@ -5,10 +5,37 @@ import { env } from '../../config/env.js';
 import { AppError } from '../../core/errors/app-error.js';
 import { TenantModel } from '../auth/tenant.model.js';
 import { InvoiceModel } from '../sales/invoice.model.js';
+import { streamTenantPdf, streamTenantWorkbook } from '../exports/export.service.js';
 
 const router: Router = Router();
 
 const currency = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+
+router.get('/export.:format', async (req, res, next) => {
+  try {
+    const token = typeof req.query.token === 'string' ? req.query.token : '';
+    if (!token) throw new AppError(401, 'Enlace de exportación inválido.');
+    const format = req.params.format;
+    const payload = jwt.verify(token, env.JWT_SECRET) as { scope?: string; tenantId?: string; format?: string };
+    if (payload.scope !== 'tenant-export' || !payload.tenantId || payload.format !== format || !['pdf', 'xlsx'].includes(format)) {
+      throw new AppError(403, 'El enlace no autoriza esta exportación.');
+    }
+    const date = new Date().toISOString().slice(0, 10);
+    res.setHeader('Cache-Control', 'private, no-store');
+    if (format === 'xlsx') {
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="orbit-erp-${date}.xlsx"`);
+      await streamTenantWorkbook(payload.tenantId, res);
+      return;
+    }
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="orbit-erp-${date}.pdf"`);
+    await streamTenantPdf(payload.tenantId, res);
+  } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError) return next(new AppError(401, 'El enlace de exportación venció o no es válido.'));
+    next(error);
+  }
+});
 
 router.get('/invoices/:id', async (req, res, next) => {
   try {

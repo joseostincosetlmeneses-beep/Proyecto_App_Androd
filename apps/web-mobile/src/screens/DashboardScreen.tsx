@@ -1,15 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Card, MetricCard, SectionTitle, StatusPill } from '../components/ui';
 import type { AuthSession } from '../services/auth.client';
-import { getDashboard, type DashboardSummary } from '../services/erp.client';
+import { getDashboard, getDataExportLink, seedSampleData, type DashboardSummary } from '../services/erp.client';
 import { colors, spacing } from '../theme';
-import { Feedback, money, ScreenHeading, screenStyles, shortDate } from './shared';
+import { Feedback, messageFrom, MiniButton, money, ScreenHeading, screenStyles, shortDate } from './shared';
 
 export function DashboardScreen({ session }: { session: AuthSession }) {
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionMessage, setActionMessage] = useState('');
+  const [actionBusy, setActionBusy] = useState(false);
   const firstName = session.user.name.trim().split(/\s+/)[0] || 'usuario';
 
   const load = useCallback(async () => {
@@ -20,10 +22,33 @@ export function DashboardScreen({ session }: { session: AuthSession }) {
 
   useEffect(() => { void load(); }, [load]);
 
+  async function loadSamples() {
+    setActionBusy(true); setActionMessage(''); setError('');
+    try { const result = await seedSampleData(session); setActionMessage(`${result.message} ${result.products} productos, ${result.contacts} contactos y ${result.invoices} facturas.`); await load(); }
+    catch (cause) { setError(messageFrom(cause)); }
+    finally { setActionBusy(false); }
+  }
+
+  async function exportData(format: 'pdf' | 'xlsx') {
+    setActionBusy(true); setActionMessage(''); setError('');
+    try { const { url } = await getDataExportLink(session, format); await Linking.openURL(url); setActionMessage(`Exportación ${format === 'pdf' ? 'PDF' : 'Excel'} generada.`); }
+    catch (cause) { setError(messageFrom(cause)); }
+    finally { setActionBusy(false); }
+  }
+
   return (
     <ScrollView contentContainerStyle={screenStyles.content} showsVerticalScrollIndicator={false}>
       <ScreenHeading eyebrow="RESUMEN GENERAL" title={`Hola, ${firstName}`} subtitle="Información real de ventas, inventario y contactos de tu empresa." action="Actualizar" onAction={() => void load()} />
       <Feedback loading={loading} error={error} />
+      <Card style={styles.actionCard}>
+        <View style={styles.actionCopy}><Text style={styles.actionTitle}>Datos y exportaciones</Text><Text style={styles.actionDetail}>Carga un catálogo inicial sin duplicados o descarga toda la información de tu empresa.</Text></View>
+        <View style={screenStyles.actions}>
+          <MiniButton label="Cargar datos iniciales" disabled={actionBusy} onPress={() => void loadSamples()} />
+          <MiniButton label="Exportar PDF" disabled={actionBusy} onPress={() => void exportData('pdf')} />
+          <MiniButton label="Exportar Excel" disabled={actionBusy} onPress={() => void exportData('xlsx')} />
+        </View>
+      </Card>
+      {actionMessage ? <Feedback empty={actionMessage} /> : null}
       {data ? (
         <>
           <View style={screenStyles.grid}>
@@ -66,5 +91,9 @@ const styles = StyleSheet.create({
   summaryValue: { color: colors.text, fontSize: 13, fontWeight: '800' },
   warning: { color: colors.warning },
   danger: { color: colors.danger },
-  retry: { color: colors.primaryBright, fontWeight: '700', textAlign: 'center', padding: spacing.sm }
+  retry: { color: colors.primaryBright, fontWeight: '700', textAlign: 'center', padding: spacing.sm },
+  actionCard: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.md },
+  actionCopy: { flex: 1, minWidth: 230 },
+  actionTitle: { color: colors.text, fontSize: 15, fontWeight: '800' },
+  actionDetail: { color: colors.textMuted, fontSize: 11, lineHeight: 17, marginTop: 4 }
 });

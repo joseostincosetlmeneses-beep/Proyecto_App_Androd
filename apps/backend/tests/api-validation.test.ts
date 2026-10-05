@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CreateInvoiceInputSchema, PaginationQuerySchema } from '@erp/contracts';
+import { CreateContactInputSchema, CreateInvoiceInputSchema, CreateProductInputSchema, PaginationQuerySchema, StockAdjustmentInputSchema } from '@erp/contracts';
 
 describe('Contracts & Validation Schemas', () => {
   it('PaginationQuerySchema asigna valores por defecto válidos', () => {
@@ -40,6 +40,11 @@ describe('Contracts & Validation Schemas', () => {
 
     const result = CreateInvoiceInputSchema.safeParse(validInvoice);
     expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).not.toHaveProperty('total');
+      expect(result.data.items[0]).not.toHaveProperty('unitPrice');
+      expect(result.data.items[0]).not.toHaveProperty('description');
+    }
   });
 
   it('CreateInvoiceInputSchema rechaza facturas sin items', () => {
@@ -55,5 +60,13 @@ describe('Contracts & Validation Schemas', () => {
 
     const result = CreateInvoiceInputSchema.safeParse(invalidInvoice);
     expect(result.success).toBe(false);
+  });
+
+  it('valida los datos operativos de productos y contactos', () => {
+    expect(CreateProductInputSchema.safeParse({
+      sku: 'SKU-1', barcode: '750000000001', name: 'Producto', costo: 10, precio: 15, stockMinimo: 2, initialStock: 5
+    }).success).toBe(true);
+    expect(CreateContactInputSchema.safeParse({ name: 'Cliente Uno', type: 'Cliente', email: 'cliente@example.com' }).success).toBe(true);
+    expect(StockAdjustmentInputSchema.safeParse({ quantity: 0, reason: 'Conteo físico' }).success).toBe(false);
   });
 });

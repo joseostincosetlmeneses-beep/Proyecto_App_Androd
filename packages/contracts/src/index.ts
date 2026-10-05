@@ -30,6 +30,43 @@ export const ProductSchema = z.object({
 });
 export type Product = z.infer<typeof ProductSchema>;
 
+export const CreateProductInputSchema = ProductSchema.omit({ id: true, tenantId: true }).extend({
+  initialStock: z.number().nonnegative().default(0)
+});
+export type CreateProductInput = z.infer<typeof CreateProductInputSchema>;
+
+export const UpdateProductInputSchema = ProductSchema.omit({ id: true, tenantId: true }).partial().refine(
+  (value) => Object.keys(value).length > 0,
+  'Incluye al menos un campo para actualizar'
+);
+export type UpdateProductInput = z.infer<typeof UpdateProductInputSchema>;
+
+export const StockAdjustmentInputSchema = z.object({
+  quantity: z.number().finite().refine((value) => value !== 0, 'El ajuste no puede ser cero'),
+  reason: z.string().trim().min(3).max(160)
+});
+export type StockAdjustmentInput = z.infer<typeof StockAdjustmentInputSchema>;
+
+export const ContactSchema = z.object({
+  id: z.string().optional(),
+  tenantId: z.string().min(1),
+  name: z.string().trim().min(2).max(140),
+  type: z.enum(['Cliente', 'Proveedor']).default('Cliente'),
+  taxId: z.string().trim().max(40).optional(),
+  email: z.union([z.string().trim().email(), z.literal('')]).optional(),
+  phone: z.string().trim().max(40).optional()
+});
+export type Contact = z.infer<typeof ContactSchema>;
+
+export const CreateContactInputSchema = ContactSchema.omit({ id: true, tenantId: true });
+export type CreateContactInput = z.infer<typeof CreateContactInputSchema>;
+
+export const UpdateContactInputSchema = CreateContactInputSchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  'Incluye al menos un campo para actualizar'
+);
+export type UpdateContactInput = z.infer<typeof UpdateContactInputSchema>;
+
 export const CustomerSnapshotSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -57,14 +94,31 @@ export const InvoiceSchema = z.object({
   subtotal: z.number().nonnegative(),
   impuestos: z.number().nonnegative(),
   total: z.number().nonnegative(),
-  issuedAt: z.coerce.date()
+  issuedAt: z.coerce.date(),
+  status: z.enum(['pending', 'paid', 'cancelled']).default('pending'),
+  paidAt: z.coerce.date().nullable().optional()
 });
 export type Invoice = z.infer<typeof InvoiceSchema>;
 
-export const CreateInvoiceInputSchema = InvoiceSchema.omit({ tenantId: true }).extend({
-  tenantId: z.string().optional()
+export const CreateInvoiceItemSchema = z.object({
+  productId: z.string().min(1),
+  sku: z.string().min(1),
+  quantity: z.number().positive(),
+  taxRate: z.number().min(0).max(1).default(0)
+});
+
+export const CreateInvoiceInputSchema = z.object({
+  number: z.string().trim().min(1).max(60),
+  customer: CustomerSnapshotSchema,
+  items: z.array(CreateInvoiceItemSchema).min(1),
+  issuedAt: z.coerce.date()
 });
 export type CreateInvoiceInput = z.infer<typeof CreateInvoiceInputSchema>;
+
+export const UpdateInvoiceStatusInputSchema = z.object({
+  status: z.enum(['paid', 'cancelled'])
+});
+export type UpdateInvoiceStatusInput = z.infer<typeof UpdateInvoiceStatusInputSchema>;
 
 export const JournalLineSchema = z.object({
   accountId: z.string().min(1),
@@ -110,6 +164,13 @@ export const PaginationQuerySchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).default('desc')
 });
 export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;
+
+export const CatalogPaginationQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(50),
+  search: z.string().trim().optional()
+});
+export type CatalogPaginationQuery = z.infer<typeof CatalogPaginationQuerySchema>;
 
 export const ResourceIdParamsSchema = z.object({
   id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Identificador inválido')

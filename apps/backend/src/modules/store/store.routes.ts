@@ -47,6 +47,31 @@ function escapeXml(value: string) {
   return value.replace(/[<>&"']/g, (character) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' })[character] ?? character);
 }
 
+function catalogSearchPattern(value: string) {
+  const accentGroups: Record<string, string> = {
+    a: '[aáàäâã]', e: '[eéèëê]', i: '[iíìïî]', o: '[oóòöôõ]', u: '[uúùüû]', n: '[nñ]', c: '[cç]'
+  };
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .split('')
+    .map((character) => accentGroups[character] ?? character)
+    .join('');
+}
+
+export function catalogSearchFilter(search: string) {
+  const tokens = search.trim().split(/[\s._-]+/).filter(Boolean).slice(0, 8);
+  if (tokens.length === 0) return {};
+  return {
+    $and: tokens.map((token) => {
+      const pattern = catalogSearchPattern(token);
+      return { $or: [{ name: { $regex: pattern, $options: 'i' } }, { sku: { $regex: pattern, $options: 'i' } }] };
+    })
+  };
+}
+
 router.get('/images/:sku.svg', (req, res) => {
   const sku = String(req.params.sku).slice(0, 40);
   const color = colorFor(sku);
@@ -89,7 +114,7 @@ router.get('/:tenantId/products', async (req, res, next) => {
     if (!tenant) throw new AppError(404, 'Tienda no encontrada.');
     const { page, limit, search } = parsedQuery.data;
     const filter: Record<string, unknown> = { tenantId: parsedTenant.data };
-    if (search) filter.$or = [{ name: { $regex: search, $options: 'i' } }, { sku: { $regex: search, $options: 'i' } }];
+    if (search) Object.assign(filter, catalogSearchFilter(search));
     const [products, total] = await Promise.all([
       ProductModel.find(filter).sort({ name: 1 }).skip((page - 1) * limit).limit(limit).lean(),
       ProductModel.countDocuments(filter)

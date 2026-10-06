@@ -45,7 +45,16 @@ export function StorefrontScreen({ tenantId }: { tenantId: string }) {
   }, [page, search, tenantId]);
   useEffect(() => { void load(); }, [load]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      setSearch(query.trim());
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [query]);
+
   const visibleCart = useMemo(() => Object.values(cartProducts).filter((product) => cart[product.id]), [cart, cartProducts]);
+  const pageNumbers = useMemo(() => Array.from({ length: totalPages }, (_, index) => index + 1), [totalPages]);
   const itemCount = Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
   const subtotal = visibleCart.reduce((sum, product) => sum + product.precio * (cart[product.id] ?? 0), 0);
   const checkoutTotal = subtotal * 1.16;
@@ -54,7 +63,16 @@ export function StorefrontScreen({ tenantId }: { tenantId: string }) {
 
   function submitSearch(value = query) {
     const normalized = value.trim();
-    setPage(1); setSearch(normalized); setActiveCategory(normalized || 'Todos');
+    setPage(1); setSearch(normalized);
+  }
+
+  function changeSearch(value: string) {
+    setQuery(value);
+    setActiveCategory(value.trim() ? '' : 'Todos');
+  }
+
+  function clearSearch() {
+    setQuery(''); setSearch(''); setPage(1); setActiveCategory('Todos');
   }
 
   function selectCategory(category: string) {
@@ -93,7 +111,8 @@ export function StorefrontScreen({ tenantId }: { tenantId: string }) {
         <Brand />
         {!isMobile ? <View style={styles.deliveryCopy}><Text style={styles.deliveryLabel}>Tienda oficial</Text><Text numberOfLines={1} style={styles.deliveryName}>{store?.name ?? 'Orbit ERP'}</Text></View> : null}
         {!isMobile ? <View style={styles.navSearch}>
-          <TextInput value={query} onChangeText={setQuery} onSubmitEditing={() => submitSearch()} returnKeyType="search" placeholder="¿Qué estás buscando?" placeholderTextColor="#8A94A6" style={styles.searchInput} />
+          <TextInput value={query} onChangeText={changeSearch} onSubmitEditing={() => submitSearch()} returnKeyType="search" placeholder="¿Qué estás buscando?" placeholderTextColor="#8A94A6" style={styles.searchInput} />
+          {query ? <Pressable accessibilityLabel="Limpiar búsqueda" onPress={clearSearch} style={styles.clearSearch}><Text style={styles.clearSearchText}>×</Text></Pressable> : null}
           <Pressable accessibilityLabel="Buscar productos" onPress={() => submitSearch()} style={({ pressed }) => [styles.searchButton, pressed && styles.pressed]}><Text style={styles.searchIcon}>⌕</Text></Pressable>
         </View> : null}
         <Pressable accessibilityRole="button" accessibilityLabel={`Abrir carrito con ${itemCount} artículos`} onPress={() => setCartOpen(true)} style={({ pressed }) => [styles.cartButton, pressed && styles.pressed]}>
@@ -101,7 +120,8 @@ export function StorefrontScreen({ tenantId }: { tenantId: string }) {
           {itemCount > 0 ? <View style={styles.cartCount}><Text style={styles.cartCountText}>{itemCount > 99 ? '99+' : itemCount}</Text></View> : null}
         </Pressable>
         {isMobile ? <View style={[styles.navSearch, styles.navSearchMobile]}>
-          <TextInput value={query} onChangeText={setQuery} onSubmitEditing={() => submitSearch()} returnKeyType="search" placeholder="¿Qué estás buscando?" placeholderTextColor="#8A94A6" style={styles.searchInput} />
+          <TextInput value={query} onChangeText={changeSearch} onSubmitEditing={() => submitSearch()} returnKeyType="search" placeholder="¿Qué estás buscando?" placeholderTextColor="#8A94A6" style={styles.searchInput} />
+          {query ? <Pressable accessibilityLabel="Limpiar búsqueda" onPress={clearSearch} style={styles.clearSearch}><Text style={styles.clearSearchText}>×</Text></Pressable> : null}
           <Pressable accessibilityLabel="Buscar productos" onPress={() => submitSearch()} style={({ pressed }) => [styles.searchButton, pressed && styles.pressed]}><Text style={styles.searchIcon}>⌕</Text></Pressable>
         </View> : null}
       </View>
@@ -140,10 +160,16 @@ export function StorefrontScreen({ tenantId }: { tenantId: string }) {
               </View>
             </View>;
           })}
+          {!loading && products.length === 0 ? <View style={styles.emptyResults}><Text style={styles.emptyResultsIcon}>⌕</Text><Text style={styles.emptyResultsTitle}>No encontramos productos</Text><Text style={styles.emptyResultsText}>Prueba con otra palabra, una categoría o una parte del nombre del producto.</Text><Pressable onPress={clearSearch} style={styles.emptyResultsButton}><Text style={styles.emptyResultsButtonText}>Ver todos los productos</Text></Pressable></View> : null}
         </View>
-        <View style={styles.pagination}>
-          <Pressable disabled={page <= 1 || loading} onPress={() => setPage((value) => Math.max(1, value - 1))} style={[styles.pageButton, (page <= 1 || loading) && styles.disabled]}><Text style={styles.pageButtonText}>‹ Anterior</Text></Pressable><Text style={styles.pageNumber}>{page}</Text><Pressable disabled={page >= totalPages || loading} onPress={() => setPage((value) => Math.min(totalPages, value + 1))} style={[styles.pageButton, (page >= totalPages || loading) && styles.disabled]}><Text style={styles.pageButtonText}>Siguiente ›</Text></Pressable>
-        </View>
+        {totalPages > 1 ? <View style={styles.paginationWrap}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pagination}>
+            <Pressable accessibilityLabel="Página anterior" disabled={page <= 1 || loading} onPress={() => setPage((value) => Math.max(1, value - 1))} style={[styles.pageButton, (page <= 1 || loading) && styles.disabled]}><Text style={styles.pageButtonText}>‹ Anterior</Text></Pressable>
+            {pageNumbers.map((pageNumber) => <Pressable key={pageNumber} accessibilityRole="button" accessibilityLabel={`Ir a la página ${pageNumber}`} accessibilityState={{ selected: page === pageNumber }} disabled={loading} onPress={() => setPage(pageNumber)} style={[styles.pageNumberButton, page === pageNumber && styles.pageNumberButtonActive]}><Text style={[styles.pageNumberText, page === pageNumber && styles.pageNumberTextActive]}>{pageNumber}</Text></Pressable>)}
+            <Pressable accessibilityLabel="Página siguiente" disabled={page >= totalPages || loading} onPress={() => setPage((value) => Math.min(totalPages, value + 1))} style={[styles.pageButton, (page >= totalPages || loading) && styles.disabled]}><Text style={styles.pageButtonText}>Siguiente ›</Text></Pressable>
+          </ScrollView>
+          <Text style={styles.paginationHint}>Página {page} de {totalPages} · Desliza para ver todas</Text>
+        </View> : null}
         <View style={styles.trustRow}>
           <View style={styles.trustItem}><Text style={styles.trustIcon}>✓</Text><View><Text style={styles.trustTitle}>Compra simulada</Text><Text style={styles.trustText}>No se realizan cargos reales</Text></View></View>
           <View style={styles.trustItem}><Text style={styles.trustIcon}>↻</Text><View><Text style={styles.trustTitle}>Inventario conectado</Text><Text style={styles.trustText}>Cambios reflejados en el ERP</Text></View></View>
@@ -182,7 +208,7 @@ const styles = StyleSheet.create({
   page: { flex: 1, minHeight: '100%', backgroundColor: storefront.background },
   promoBar: { minHeight: 28, backgroundColor: storefront.blueDark, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 }, promoText: { color: '#FFFFFF', fontSize: 9, fontWeight: '800', letterSpacing: 0.7, textAlign: 'center' },
   navbar: { minHeight: 72, width: '100%', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14, paddingVertical: 10, backgroundColor: storefront.navy }, deliveryCopy: { maxWidth: 160 }, deliveryLabel: { color: '#A9B7CA', fontSize: 9 }, deliveryName: { color: '#FFFFFF', fontSize: 11, fontWeight: '700', marginTop: 2 },
-  navSearch: { flex: 1, minWidth: 260, maxWidth: 720, height: 44, flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 9, overflow: 'hidden' }, navSearchMobile: { flexBasis: '100%', minWidth: '100%' }, searchInput: { flex: 1, color: storefront.text, fontSize: 13, paddingHorizontal: 14 }, searchButton: { width: 50, alignItems: 'center', justifyContent: 'center', backgroundColor: storefront.yellow }, searchIcon: { color: storefront.navy, fontSize: 24, fontWeight: '900' },
+  navSearch: { flex: 1, minWidth: 260, maxWidth: 720, height: 44, flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 9, overflow: 'hidden' }, navSearchMobile: { flexBasis: '100%', minWidth: '100%' }, searchInput: { flex: 1, color: storefront.text, fontSize: 13, paddingHorizontal: 14 }, clearSearch: { width: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' }, clearSearchText: { color: storefront.muted, fontSize: 22, lineHeight: 24, fontWeight: '500' }, searchButton: { width: 50, alignItems: 'center', justifyContent: 'center', backgroundColor: storefront.yellow }, searchIcon: { color: storefront.navy, fontSize: 24, fontWeight: '900' },
   cartButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 10, position: 'relative' }, cartIcon: { fontSize: 21 }, cartButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' }, cartCount: { position: 'absolute', top: -3, right: 0, minWidth: 19, height: 19, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: storefront.yellow }, cartCountText: { color: storefront.navy, fontSize: 9, fontWeight: '900' },
   categoryBar: { flexGrow: 0, height: 48, minHeight: 48, backgroundColor: storefront.navySoft }, categoryContent: { minHeight: 48, gap: 4, alignItems: 'stretch' }, categoryChip: { height: 48, minWidth: 78, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' }, categoryChipActive: { borderBottomColor: storefront.yellow, backgroundColor: 'rgba(255,255,255,0.06)' }, categoryText: { color: '#CBD5E1', fontSize: 11, lineHeight: 15, fontWeight: '600' }, categoryTextActive: { color: '#FFFFFF', fontWeight: '900' },
   content: { width: '100%', maxWidth: 1240, alignSelf: 'center', paddingTop: 18, paddingBottom: 110, gap: 20 },
@@ -192,7 +218,8 @@ const styles = StyleSheet.create({
   productCard: { minWidth: 150, flexGrow: 1, maxWidth: 286, borderWidth: 1, borderColor: storefront.border, borderRadius: 12, backgroundColor: storefront.card, overflow: 'hidden', shadowColor: '#101828', shadowOpacity: 0.07, shadowRadius: 12, shadowOffset: { width: 0, height: 5 } }, imageWrap: { width: '100%', aspectRatio: 1.15, padding: 10, backgroundColor: '#FFFFFF', position: 'relative' }, productImage: { width: '100%', height: '100%' }, offerBadge: { position: 'absolute', zIndex: 2, top: 8, left: 8, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 5, backgroundColor: storefront.red }, offerBadgeText: { color: '#FFFFFF', fontSize: 7, fontWeight: '900', letterSpacing: 0.5 },
   productBody: { flex: 1, padding: 12 }, sku: { color: '#98A2B3', fontSize: 8, fontWeight: '700', textTransform: 'uppercase' }, productName: { minHeight: 38, color: storefront.text, fontSize: 12, lineHeight: 18, fontWeight: '700', marginTop: 4 }, price: { color: storefront.text, fontSize: 18, fontWeight: '900', marginTop: 8 }, stock: { minHeight: 16, color: storefront.green, fontSize: 8, fontWeight: '800', marginTop: 3 }, out: { color: storefront.red },
   addButton: { minHeight: 40, alignItems: 'center', justifyContent: 'center', marginTop: 10, borderRadius: 20, backgroundColor: storefront.yellow }, addButtonPressed: { backgroundColor: storefront.yellowPressed }, addButtonText: { color: storefront.navy, fontSize: 10, fontWeight: '800' }, quantityRow: { height: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, borderWidth: 1, borderColor: '#A9C4F5', borderRadius: 21, overflow: 'hidden', backgroundColor: '#FFFFFF' }, quantityButton: { width: 44, height: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: storefront.sky }, stepperPressed: { backgroundColor: '#CFE0FF' }, quantityText: { color: storefront.blueDark, fontSize: 20, lineHeight: 24, fontWeight: '900' }, quantityCopy: { flex: 1, alignItems: 'center', justifyContent: 'center' }, quantity: { color: storefront.text, fontSize: 12, lineHeight: 14, fontWeight: '900' }, quantityLabel: { color: storefront.muted, fontSize: 7, lineHeight: 9, fontWeight: '600' },
-  pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginVertical: 8 }, pageButton: { minHeight: 38, justifyContent: 'center', paddingHorizontal: 16, borderWidth: 1, borderColor: storefront.border, borderRadius: 9, backgroundColor: '#FFFFFF' }, pageButtonText: { color: storefront.blueDark, fontSize: 10, fontWeight: '800' }, pageNumber: { width: 38, height: 38, textAlign: 'center', lineHeight: 38, borderRadius: 9, overflow: 'hidden', color: '#FFFFFF', backgroundColor: storefront.blue, fontSize: 11, fontWeight: '900' },
+  emptyResults: { width: '100%', alignItems: 'center', paddingVertical: 52, paddingHorizontal: 20, borderWidth: 1, borderColor: storefront.border, borderRadius: 14, backgroundColor: '#FFFFFF' }, emptyResultsIcon: { color: storefront.blueDark, fontSize: 38, fontWeight: '900' }, emptyResultsTitle: { color: storefront.text, fontSize: 18, fontWeight: '900', marginTop: 10 }, emptyResultsText: { maxWidth: 440, color: storefront.muted, fontSize: 11, lineHeight: 17, textAlign: 'center', marginTop: 6 }, emptyResultsButton: { minHeight: 40, justifyContent: 'center', marginTop: 16, paddingHorizontal: 18, borderRadius: 20, backgroundColor: storefront.yellow }, emptyResultsButtonText: { color: storefront.navy, fontSize: 10, fontWeight: '900' },
+  paginationWrap: { width: '100%', alignItems: 'center', gap: 8, marginVertical: 8 }, pagination: { flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 2, paddingVertical: 2 }, pageButton: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 15, borderWidth: 1, borderColor: storefront.border, borderRadius: 9, backgroundColor: '#FFFFFF' }, pageButtonText: { color: storefront.blueDark, fontSize: 10, fontWeight: '800' }, pageNumberButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: storefront.border, borderRadius: 9, backgroundColor: '#FFFFFF' }, pageNumberButtonActive: { borderColor: storefront.blue, backgroundColor: storefront.blue }, pageNumberText: { color: storefront.blueDark, fontSize: 11, fontWeight: '800' }, pageNumberTextActive: { color: '#FFFFFF', fontWeight: '900' }, paginationHint: { color: storefront.muted, fontSize: 9, fontWeight: '600' },
   trustRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: 18, padding: 22, borderRadius: 14, backgroundColor: '#FFFFFF' }, trustItem: { flexDirection: 'row', alignItems: 'center', gap: 10, minWidth: 210 }, trustIcon: { width: 34, height: 34, lineHeight: 34, textAlign: 'center', borderRadius: 17, overflow: 'hidden', color: storefront.blueDark, backgroundColor: storefront.sky, fontSize: 16, fontWeight: '900' }, trustTitle: { color: storefront.text, fontSize: 11, fontWeight: '800' }, trustText: { color: storefront.muted, fontSize: 9, marginTop: 2 }, pressed: { opacity: 0.78 }, disabled: { opacity: 0.45 },
   mobileCartBar: { position: 'absolute', left: 12, right: 12, bottom: 12, height: 56, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, borderRadius: 16, backgroundColor: storefront.blue, shadowColor: '#000000', shadowOpacity: 0.25, shadowRadius: 14, shadowOffset: { width: 0, height: 7 } }, mobileCartCount: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' }, mobileCartCountText: { color: storefront.blueDark, fontSize: 11, fontWeight: '900' }, mobileCartText: { flex: 1, color: '#FFFFFF', fontSize: 12, fontWeight: '900', marginLeft: 10 }, mobileCartTotal: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
   modalBackdrop: { flex: 1, alignItems: 'flex-end', justifyContent: 'center', backgroundColor: 'rgba(7,20,38,0.58)' }, cartPanel: { width: 440, maxWidth: '92%', height: '100%', backgroundColor: '#FFFFFF', shadowColor: '#000000', shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: -8, height: 0 } }, cartPanelMobile: { width: '100%', maxWidth: '100%' }, cartHeader: { minHeight: 76, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: storefront.border }, cartTitle: { color: storefront.text, fontSize: 21, fontWeight: '900' }, cartSubtitle: { color: storefront.muted, fontSize: 10, marginTop: 3 }, closeButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 19, backgroundColor: storefront.background }, closeText: { color: storefront.text, fontSize: 25, lineHeight: 28 },

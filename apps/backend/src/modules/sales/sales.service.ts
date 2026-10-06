@@ -6,6 +6,7 @@ import { StockMovementModel } from '../inventory/stock-movement.model.js';
 import { StockBalanceModel } from '../inventory/stock-balance.model.js';
 import { ProductModel } from '../inventory/product.model.js';
 import { JournalEntryModel } from '../accounting/journal.model.js';
+import { CashMovementModel } from '../finance/cash-movement.model.js';
 import type mongoose from 'mongoose';
 
 const money = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
@@ -171,6 +172,11 @@ export async function updateInvoiceStatus(tenantId: string, id: string, status: 
     invoice.status = 'paid';
     invoice.paidAt = new Date();
     await invoice.save();
+    await CashMovementModel.updateOne(
+      { tenantId, sourceType: 'invoice', sourceId: invoice.id },
+      { $setOnInsert: { tenantId, type: 'income', category: 'Ventas', concept: `Cobro factura ${invoice.number}`, amount: invoice.total, occurredAt: invoice.paidAt, createdBy: 'system', sourceType: 'invoice', sourceId: invoice.id } },
+      { upsert: true }
+    );
     return { ...invoice.toObject(), id: invoice.id };
   }
 

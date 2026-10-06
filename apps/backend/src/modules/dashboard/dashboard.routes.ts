@@ -8,7 +8,7 @@ import { InvoiceModel } from '../sales/invoice.model.js';
 
 const router: Router = Router();
 
-router.get('/summary', requireRoles('admin', 'sales', 'inventory', 'accounting'), async (req, res, next) => {
+router.get('/summary', requireRoles('admin', 'sales', 'inventory', 'accounting', 'purchasing', 'projects'), async (req, res, next) => {
   try {
     if (!req.tenantId) throw new AppError(400, 'Tenant requerido');
     const tenantId = req.tenantId;

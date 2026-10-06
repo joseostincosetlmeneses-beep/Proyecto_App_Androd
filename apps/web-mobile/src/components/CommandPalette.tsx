@@ -3,11 +3,16 @@ import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import type { ScreenKey } from './AppShell';
 import { colors, radius, spacing } from '../theme';
 
-const commands: Array<{ label: string; hint: string; screen: ScreenKey; glyph: string }> = [
+const commands: Array<{ label: string; hint: string; screen: ScreenKey; glyph: string; roles?: string[] }> = [
   { label: 'Abrir dashboard', hint: 'Resumen de la operación', screen: 'dashboard', glyph: '⌂' },
   { label: 'Consultar ventas', hint: 'Facturas y cobros', screen: 'sales', glyph: '↗' },
   { label: 'Revisar inventario', hint: 'Existencias y alertas', screen: 'inventory', glyph: '◫' },
   { label: 'Buscar contactos', hint: 'Clientes y proveedores', screen: 'contacts', glyph: '◎' },
+  { label: 'Gestionar compras', hint: 'Órdenes y recepción de mercancía', screen: 'purchases', glyph: '▣', roles: ['admin', 'purchasing', 'accounting'] },
+  { label: 'Abrir finanzas', hint: 'Ingresos, gastos y saldo', screen: 'finance', glyph: '$', roles: ['admin', 'accounting'] },
+  { label: 'Revisar proyectos', hint: 'Avance y presupuestos', screen: 'projects', glyph: '◇', roles: ['admin', 'projects', 'sales'] },
+  { label: 'Administrar equipo', hint: 'Usuarios, roles y acceso', screen: 'team', glyph: '♙', roles: ['admin'] },
+  { label: 'Consultar actividad', hint: 'Auditoría y trazabilidad', screen: 'activity', glyph: '◷', roles: ['admin'] },
   { label: 'Consultar reportes', hint: 'Indicadores, PDF y Excel', screen: 'reports', glyph: '▤' },
   { label: 'Estado del sistema', hint: 'Perfil y conexión', screen: 'profile', glyph: '○' }
 ];
@@ -15,15 +20,17 @@ const commands: Array<{ label: string; hint: string; screen: ScreenKey; glyph: s
 export function CommandPalette({
   visible,
   onClose,
-  onSelect
+  onSelect,
+  roles
 }: {
   visible: boolean;
   onClose: () => void;
   onSelect: (screen: ScreenKey) => void;
+  roles: string[];
 }) {
   const [query, setQuery] = useState('');
   useEffect(() => { if (!visible) setQuery(''); }, [visible]);
-  const filtered = useMemo(() => commands.filter((command) => `${command.label} ${command.hint}`.toLowerCase().includes(query.toLowerCase())), [query]);
+  const filtered = useMemo(() => commands.filter((command) => (!command.roles || command.roles.some((role) => roles.includes(role))) && `${command.label} ${command.hint}`.toLowerCase().includes(query.toLowerCase())), [query, roles]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>

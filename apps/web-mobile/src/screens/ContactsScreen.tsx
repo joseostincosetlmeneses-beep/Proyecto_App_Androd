@@ -24,12 +24,17 @@ export function ContactsScreen({ session }: { session: AuthSession }) {
   const [busy, setBusy] = useState(false);
   const [modalError, setModalError] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true); setError('');
+  const load = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setError('');
     try { const result = await getContactPage(session, page, appliedSearch); setContacts(result.items); setTotal(result.total); setTotalPages(result.totalPages); } catch (cause) { setError(messageFrom(cause)); }
-    finally { setLoading(false); }
+    finally { if (showLoading) setLoading(false); }
   }, [appliedSearch, page, session]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+    const timer = setInterval(() => { void load(false); }, 5_000);
+    return () => clearInterval(timer);
+  }, [load]);
   const visible = useMemo(() => contacts.filter((contact) => filter === 'Todos' || contact.type === filter), [contacts, filter]);
 
   function open(contact: ContactRecord | null) { setEditing(contact); setForm(contact ? { name: contact.name, type: contact.type, taxId: contact.taxId, email: contact.email, phone: contact.phone } : emptyContact); setModalError(''); }

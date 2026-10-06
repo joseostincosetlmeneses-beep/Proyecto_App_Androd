@@ -30,12 +30,17 @@ export function InventoryScreen({ session }: { session: AuthSession }) {
   const [busy, setBusy] = useState(false);
   const [pendingImage, setPendingImage] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true); setError('');
+  const load = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setError('');
     try { const result = await getProductPage(session, page, appliedSearch); setProducts(result.items); setTotal(result.total); setTotalPages(result.totalPages); } catch (cause) { setError(messageFrom(cause)); }
-    finally { setLoading(false); }
+    finally { if (showLoading) setLoading(false); }
   }, [appliedSearch, page, session]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+    const timer = setInterval(() => { void load(false); }, 5_000);
+    return () => clearInterval(timer);
+  }, [load]);
 
   const visible = useMemo(() => products.filter((product) => filter === 'Todos' || (filter === 'Sin stock' ? product.currentStock <= 0 : product.currentStock > 0 && product.currentStock <= product.stockMinimo)), [filter, products]);
   const inventoryValue = products.reduce((sum, product) => sum + product.costo * product.currentStock, 0);

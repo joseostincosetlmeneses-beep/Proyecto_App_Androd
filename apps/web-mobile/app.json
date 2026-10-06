@@ -2,23 +2,33 @@
   "expo": {
     "name": "Orbit ERP",
     "slug": "orbit-erp",
-    "version": "0.2.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#050B18",
-    "splash": {
-      "image": "./assets/logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#050B18"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "plugins": [
       "expo-secure-store",
       "expo-image",
-      "expo-image-picker"
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Orbit ERP necesita acceso a tus fotos para asignar imágenes a los productos.",
+          "cameraPermission": "Orbit ERP necesita acceso a la cámara para fotografiar productos.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/logo.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#050B18"
+        }
+      ]
     ],
     "android": {
       "package": "com.joseostincos.orbiterp",
@@ -37,6 +47,12 @@
       "android",
       "ios",
       "web"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b06e0c9c-641a-441e-94c3-fab332648d79"
+      }
+    },
+    "owner": "ostin2709"
   }
 }

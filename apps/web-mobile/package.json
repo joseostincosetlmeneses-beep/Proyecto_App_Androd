@@ -1,6 +1,6 @@
 {
   "name": "@erp/web-mobile",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -14,10 +14,11 @@
   "dependencies": {
     "@erp/contracts": "workspace:*",
     "@expo/metro-runtime": "~57.0.16",
-    "expo": "~57.0.26",
+    "expo": "~57.0.27",
     "expo-image": "~57.0.5",
     "expo-image-picker": "~57.0.20",
     "expo-secure-store": "~57.0.4",
+    "expo-splash-screen": "~57.0.9",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
@@ -26,6 +27,6 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@types/react": "~19.2.0",
-    "typescript": "^5.9.2"
+    "typescript": "^6.0.3"
   }
 }

@@ -15,6 +15,7 @@
     "@erp/contracts": "workspace:*",
     "@expo/metro-runtime": "~57.0.16",
     "expo": "~57.0.26",
+    "expo-image": "~57.0.5",
     "expo-secure-store": "~57.0.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -27,4 +28,3 @@
     "typescript": "^5.9.2"
   }
 }
-

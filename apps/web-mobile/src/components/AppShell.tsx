@@ -1,16 +1,18 @@
 import React, { type PropsWithChildren } from 'react';
-import { Platform, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Brand, IconButton, SearchField, StatusPill } from './ui';
 import { colors, radius, spacing } from '../theme';
 import type { AuthUser } from '../services/auth.client';
 
-export type ScreenKey = 'dashboard' | 'sales' | 'inventory' | 'contacts' | 'profile';
+export type ScreenKey = 'dashboard' | 'sales' | 'inventory' | 'contacts' | 'store' | 'reports' | 'profile';
 
 const navigation: Array<{ key: ScreenKey; label: string; glyph: string }> = [
   { key: 'dashboard', label: 'Dashboard', glyph: '⌂' },
   { key: 'sales', label: 'Ventas', glyph: '↗' },
   { key: 'inventory', label: 'Inventario', glyph: '◫' },
   { key: 'contacts', label: 'Contactos', glyph: '◎' },
+  { key: 'store', label: 'Tienda', glyph: '▣' },
+  { key: 'reports', label: 'Reportes', glyph: '▤' },
   { key: 'profile', label: 'Perfil', glyph: '○' }
 ];
 
@@ -65,7 +67,7 @@ export function AppShell({
           </View>
           <View style={styles.content}>{children}</View>
           {!desktop ? (
-            <View style={styles.bottomNav}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bottomNav} contentContainerStyle={styles.bottomNavContent}>
               {navigation.map((item) => (
                 <Pressable
                   accessibilityLabel={item.label}
@@ -78,7 +80,7 @@ export function AppShell({
                   <Text numberOfLines={1} style={[styles.bottomLabel, item.key === active && styles.bottomLabelActive]}>{item.label}</Text>
                 </Pressable>
               ))}
-            </View>
+            </ScrollView>
           ) : null}
         </View>
       </View>
@@ -137,8 +139,9 @@ const styles = StyleSheet.create({
   commandButton: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primaryDark, borderWidth: 1, borderColor: colors.primaryBright },
   commandGlyph: { color: colors.text, fontSize: 17, fontWeight: '700' },
   content: { flex: 1, minWidth: 0 },
-  bottomNav: { position: 'absolute', left: 12, right: 12, bottom: 16, height: 64, borderRadius: 23, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.overlay, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 7, shadowColor: '#000000', shadowOpacity: 0.48, shadowRadius: 24, shadowOffset: { width: 0, height: 12 } },
-  bottomItem: { flex: 1, minWidth: 54, height: 54, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  bottomNav: { position: 'absolute', left: 12, right: 12, bottom: 16, height: 64, borderRadius: 23, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.overlay, shadowColor: '#000000', shadowOpacity: 0.48, shadowRadius: 24, shadowOffset: { width: 0, height: 12 } },
+  bottomNavContent: { alignItems: 'center', paddingHorizontal: 7 },
+  bottomItem: { width: 68, height: 54, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 3 },
   bottomItemActive: { backgroundColor: colors.glow },
   bottomGlyph: { color: colors.textDim, fontSize: 18, height: 22 },
   bottomGlyphActive: { color: colors.primaryBright },

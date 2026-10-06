@@ -3,3 +3,5 @@ export { DashboardScreen } from './DashboardScreen';
 export { InventoryScreen } from './InventoryScreen';
 export { ProfileScreen } from './ProfileScreen';
 export { SalesScreen } from './SalesScreen';
+export { StorefrontScreen } from './StorefrontScreen';
+export { ReportsScreen } from './ReportsScreen';

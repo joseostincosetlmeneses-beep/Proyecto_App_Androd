@@ -76,8 +76,10 @@ La interfaz responsive de Android y web comparte autenticacion y datos reales po
 - registro, confirmacion de correo, bienvenida e inicio de sesion;
 - tablero con ventas, cuentas por cobrar, inventario y contactos;
 - alta y edicion de productos, existencias y movimientos de inventario;
+- imágenes automáticas para todos los productos y URL de imagen personalizable;
 - alta y edicion de clientes y proveedores;
 - emision, cobro y cancelacion de facturas con afectacion de inventario y contabilidad;
+- tienda pública por empresa con catálogo paginado, búsqueda, carrito y alta de pedidos sincronizados como facturas pendientes;
 - carga idempotente de datos iniciales por empresa (1,000 productos, 1,000 clientes, existencias y facturas de ejemplo);
 - generacion de facturas PDF mediante enlaces firmados de corta duracion;
 - exportacion completa de productos, contactos y facturas en PDF y Excel (`.xlsx`).
@@ -85,3 +87,5 @@ La interfaz responsive de Android y web comparte autenticacion y datos reales po
 Los calculos de precios, impuestos y totales se realizan en la API. Los secretos de MongoDB, JWT y Resend permanecen exclusivamente en el backend.
 
 Las cuentas nuevas reciben los datos iniciales al confirmar su correo. En una cuenta existente, el administrador puede cargarlos desde **Dashboard > Datos y exportaciones > Cargar datos iniciales**. La misma seccion contiene las descargas PDF y Excel; sus enlaces firmados vencen despues de cinco minutos.
+
+El módulo **Tienda** muestra y abre la URL pública específica de la empresa. Los clientes no necesitan iniciar sesión: agregan productos al carrito y confirman el pedido con nombre, correo y teléfono. El backend valida existencias, crea o actualiza el contacto, registra una factura pendiente y descuenta el inventario dentro de una transacción. No procesa tarjetas ni cargos bancarios; para cobro en línea debe conectarse posteriormente un proveedor de pagos.

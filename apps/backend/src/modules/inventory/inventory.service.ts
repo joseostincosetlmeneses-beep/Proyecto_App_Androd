@@ -5,12 +5,14 @@ import { AppError, NotFoundError, ValidationError } from '../../core/errors/app-
 import { ProductModel } from './product.model.js';
 import { StockBalanceModel } from './stock-balance.model.js';
 import { StockMovementModel } from './stock-movement.model.js';
+import { env } from '../../config/env.js';
 
 export type ProductRecord = {
   id: string;
   sku: string;
   barcode: string;
   name: string;
+  imageUrl: string;
   costo: number;
   precio: number;
   stockMinimo: number;
@@ -25,6 +27,9 @@ function serializeProduct(product: Record<string, unknown>, currentStock: number
     sku: String(product.sku),
     barcode: String(product.barcode),
     name: String(product.name),
+    imageUrl: typeof product.imageUrl === 'string' && product.imageUrl.length > 0
+      ? product.imageUrl
+      : `${env.PUBLIC_API_URL.replace(/\/$/, '')}/api/store/images/${encodeURIComponent(String(product.sku))}.svg`,
     costo: Number(product.costo),
     precio: Number(product.precio),
     stockMinimo: Number(product.stockMinimo),
@@ -70,6 +75,7 @@ export async function createProduct(tenantId: string, input: CreateProductInput)
         sku: input.sku.trim(),
         barcode: input.barcode.trim(),
         name: input.name.trim(),
+        imageUrl: input.imageUrl?.trim() || undefined,
         costo: input.costo,
         precio: input.precio,
         stockMinimo: input.stockMinimo

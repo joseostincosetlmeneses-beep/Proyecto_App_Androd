@@ -131,7 +131,7 @@ router.post('/:tenantId/orders', orderLimiter, async (req, res, next) => {
       { $set: { name: parsed.data.customer.name, phone: parsed.data.customer.phone, type: 'Cliente' }, $setOnInsert: { tenantId, email: parsed.data.customer.email } },
       { new: true, upsert: true, runValidators: true }
     );
-    const number = `WEB-${Date.now().toString(36).toUpperCase()}-${randomBytes(3).toString('hex').toUpperCase()}`;
+    const number = `SIM-WEB-${Date.now().toString(36).toUpperCase()}-${randomBytes(3).toString('hex').toUpperCase()}`;
     const invoice = await createInvoice({
       tenantId,
       number,

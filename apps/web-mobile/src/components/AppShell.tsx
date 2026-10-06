@@ -1,5 +1,5 @@
-import React, { type PropsWithChildren } from 'react';
-import { Platform, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import React, { type PropsWithChildren, useState } from 'react';
+import { Platform, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Brand, IconButton, SearchField, StatusPill } from './ui';
 import { colors, radius, spacing } from '../theme';
 import type { AuthUser } from '../services/auth.client';
@@ -14,6 +14,8 @@ const navigation: Array<{ key: ScreenKey; label: string; glyph: string }> = [
   { key: 'reports', label: 'Reportes', glyph: '▤' },
   { key: 'profile', label: 'Perfil', glyph: '○' }
 ];
+const mobileNavigation = navigation.filter((item) => ['dashboard', 'sales', 'inventory', 'contacts'].includes(item.key));
+const mobileMoreNavigation = navigation.filter((item) => ['reports', 'profile'].includes(item.key));
 
 export function AppShell({
   active,
@@ -31,6 +33,13 @@ export function AppShell({
 }>) {
   const { width } = useWindowDimensions();
   const desktop = width >= 900;
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreActive = mobileMoreNavigation.some((item) => item.key === active);
+
+  function navigate(screen: ScreenKey) {
+    setMoreOpen(false);
+    onNavigate(screen);
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -42,7 +51,7 @@ export function AppShell({
             <Brand />
             <View style={styles.sideNav}>
               {navigation.map((item) => (
-                <NavButton key={item.key} active={item.key === active} item={item} onPress={() => onNavigate(item.key)} />
+                <NavButton key={item.key} active={item.key === active} item={item} onPress={() => navigate(item.key)} />
               ))}
             </View>
             <View style={styles.sideFooter}>
@@ -66,20 +75,30 @@ export function AppShell({
           </View>
           <View style={styles.content}>{children}</View>
           {!desktop ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bottomNav} contentContainerStyle={styles.bottomNavContent}>
-              {navigation.map((item) => (
+            <>
+              {moreOpen ? <View style={styles.moreMenu}>
+                <Text style={styles.moreTitle}>MÁS OPCIONES</Text>
+                {mobileMoreNavigation.map((item) => <Pressable key={item.key} onPress={() => navigate(item.key)} style={({ pressed }) => [styles.moreItem, item.key === active && styles.moreItemActive, pressed && styles.pressed]}><Text style={[styles.moreGlyph, item.key === active && styles.bottomGlyphActive]}>{item.glyph}</Text><Text style={[styles.moreLabel, item.key === active && styles.bottomLabelActive]}>{item.label}</Text></Pressable>)}
+              </View> : null}
+              <View style={styles.bottomNav}>
+              {mobileNavigation.map((item) => (
                 <Pressable
                   accessibilityLabel={item.label}
                   accessibilityRole="button"
                   key={item.key}
-                  onPress={() => onNavigate(item.key)}
+                  onPress={() => navigate(item.key)}
                   style={({ pressed }) => [styles.bottomItem, item.key === active && styles.bottomItemActive, pressed && styles.pressed]}
                 >
                   <Text style={[styles.bottomGlyph, item.key === active && styles.bottomGlyphActive]}>{item.glyph}</Text>
                   <Text numberOfLines={1} style={[styles.bottomLabel, item.key === active && styles.bottomLabelActive]}>{item.label}</Text>
                 </Pressable>
               ))}
-            </ScrollView>
+              <Pressable accessibilityLabel="Más opciones" accessibilityRole="button" onPress={() => setMoreOpen((value) => !value)} style={({ pressed }) => [styles.bottomItem, moreActive && styles.bottomItemActive, pressed && styles.pressed]}>
+                <Text style={[styles.bottomGlyph, moreActive && styles.bottomGlyphActive]}>•••</Text>
+                <Text numberOfLines={1} style={[styles.bottomLabel, moreActive && styles.bottomLabelActive]}>Más</Text>
+              </Pressable>
+              </View>
+            </>
           ) : null}
         </View>
       </View>
@@ -138,14 +157,17 @@ const styles = StyleSheet.create({
   commandButton: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primaryDark, borderWidth: 1, borderColor: colors.primaryBright },
   commandGlyph: { color: colors.text, fontSize: 17, fontWeight: '700' },
   content: { flex: 1, minWidth: 0 },
-  bottomNav: { position: 'absolute', left: 12, right: 12, bottom: 16, height: 64, borderRadius: 23, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.overlay, shadowColor: '#000000', shadowOpacity: 0.48, shadowRadius: 24, shadowOffset: { width: 0, height: 12 } },
-  bottomNavContent: { alignItems: 'center', paddingHorizontal: 7 },
-  bottomItem: { width: 68, height: 54, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  bottomNav: { position: 'absolute', left: 8, right: 8, bottom: Platform.OS === 'ios' ? 8 : 6, minHeight: 66, borderRadius: 22, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.overlay, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 5, paddingVertical: 5, shadowColor: '#000000', shadowOpacity: 0.48, shadowRadius: 24, shadowOffset: { width: 0, height: 12 } },
+  bottomItem: { flex: 1, minWidth: 0, height: 54, borderRadius: 17, alignItems: 'center', justifyContent: 'center', gap: 2 },
   bottomItemActive: { backgroundColor: colors.glow },
   bottomGlyph: { color: colors.textDim, fontSize: 18, height: 22 },
   bottomGlyphActive: { color: colors.primaryBright },
   bottomLabel: { color: colors.textDim, fontSize: 8, fontWeight: '600' },
   bottomLabelActive: { color: colors.text },
+  moreMenu: { position: 'absolute', right: 12, bottom: Platform.OS === 'ios' ? 82 : 78, width: 190, borderRadius: 18, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.cardElevated, padding: 8, shadowColor: '#000000', shadowOpacity: 0.55, shadowRadius: 20, shadowOffset: { width: 0, height: 10 } },
+  moreTitle: { color: colors.textDim, fontSize: 8, fontWeight: '900', letterSpacing: 1.2, paddingHorizontal: 10, paddingVertical: 7 },
+  moreItem: { minHeight: 48, borderRadius: 13, flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 12 },
+  moreItemActive: { backgroundColor: colors.glow }, moreGlyph: { color: colors.textMuted, fontSize: 17 }, moreLabel: { color: colors.textMuted, fontSize: 12, fontWeight: '700' },
   pressed: { opacity: 0.7 }
 });
 

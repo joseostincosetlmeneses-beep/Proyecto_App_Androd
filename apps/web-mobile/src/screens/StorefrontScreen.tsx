@@ -63,7 +63,7 @@ export function StorefrontScreen({ tenantId }: { tenantId: string }) {
       });
       setCart({});
       setCartProducts({});
-      setSuccess(`Pedido ${order.number} recibido por ${money(order.total)}. Ya aparece en Ventas de Orbit ERP.`);
+      setSuccess(`Compra simulada ${order.number} registrada por ${money(order.total)}. Ya aparece en Ventas de Orbit ERP y no se realizó ningún cobro.`);
       await load();
     } catch (cause) { setError(messageFrom(cause)); }
     finally { setBusy(false); }
@@ -74,9 +74,10 @@ export function StorefrontScreen({ tenantId }: { tenantId: string }) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Brand />
-          <View style={styles.headerCopy}><Text style={styles.eyebrow}>TIENDA CONECTADA</Text><Text style={styles.title}>{store?.name ?? 'Catálogo empresarial'}</Text><Text style={styles.subtitle}>Compra productos con existencias sincronizadas en tiempo real con Orbit ERP.</Text></View>
+          <View style={styles.headerCopy}><Text style={styles.eyebrow}>CATÁLOGO DE DEMOSTRACIÓN</Text><Text style={styles.title}>{store?.name ?? 'Catálogo empresarial'}</Text><Text style={styles.subtitle}>Simula una compra con existencias sincronizadas en tiempo real con Orbit ERP.</Text></View>
           <View style={styles.cartBadge}><Text style={styles.cartNumber}>{itemCount}</Text><Text style={styles.cartLabel}>en carrito</Text></View>
         </View>
+        <Card style={styles.demoNotice}><Text style={styles.demoTitle}>Compra simulada</Text><Text style={styles.demoText}>Esta página no solicita tarjetas ni realiza transacciones reales. Al confirmar, crea una venta pendiente y actualiza el inventario del ERP únicamente para demostración.</Text></Card>
         <Feedback loading={loading} error={error} empty={success} />
         <View style={styles.searchRow}><TextInput value={query} onChangeText={setQuery} onSubmitEditing={() => { setPage(1); setSearch(query.trim()); }} placeholder="Buscar productos" placeholderTextColor={colors.textDim} style={styles.searchInput} /><MiniButton label="Buscar" onPress={() => { setPage(1); setSearch(query.trim()); }} /></View>
         <Text style={styles.catalogCount}>{total} productos disponibles en el catálogo</Text>
@@ -95,14 +96,14 @@ export function StorefrontScreen({ tenantId }: { tenantId: string }) {
         <View style={styles.pagination}><MiniButton label="Anterior" disabled={page <= 1 || loading} onPress={() => setPage((value) => Math.max(1, value - 1))} /><Text style={styles.pageLabel}>Página {page} de {totalPages}</Text><MiniButton label="Siguiente" disabled={page >= totalPages || loading} onPress={() => setPage((value) => Math.min(totalPages, value + 1))} /></View>
 
         <Card style={styles.checkout}>
-          <View style={styles.checkoutCopy}><Text style={styles.checkoutTitle}>Finalizar pedido</Text><Text style={styles.checkoutDetail}>{itemCount} artículos · subtotal {money(subtotal)} · total con IVA {money(checkoutTotal)}</Text>
+          <View style={styles.checkoutCopy}><Text style={styles.checkoutTitle}>Finalizar compra simulada</Text><Text style={styles.checkoutDetail}>{itemCount} artículos · subtotal {money(subtotal)} · total con IVA {money(checkoutTotal)}</Text>
             {visibleCart.map((product) => <Text key={product.id} style={styles.cartLine}>{cart[product.id]} × {product.name}</Text>)}
           </View>
           <View style={styles.customerForm}>
             <TextInput value={customer.name} onChangeText={(name) => setCustomer({ ...customer, name })} placeholder="Nombre completo" placeholderTextColor={colors.textDim} style={styles.input} />
             <TextInput value={customer.email} onChangeText={(email) => setCustomer({ ...customer, email })} autoCapitalize="none" keyboardType="email-address" placeholder="Correo electrónico" placeholderTextColor={colors.textDim} style={styles.input} />
             <TextInput value={customer.phone} onChangeText={(phone) => setCustomer({ ...customer, phone })} keyboardType="phone-pad" placeholder="Teléfono" placeholderTextColor={colors.textDim} style={styles.input} />
-            <MiniButton label={busy ? 'Procesando…' : 'Confirmar compra'} disabled={busy || itemCount === 0} tone="success" onPress={() => void checkout()} />
+            <MiniButton label={busy ? 'Procesando…' : 'Confirmar simulación'} disabled={busy || itemCount === 0} tone="success" onPress={() => void checkout()} />
           </View>
         </Card>
       </ScrollView>
@@ -118,6 +119,7 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 32, fontWeight: '900', marginTop: 7 }, subtitle: { color: colors.textMuted, fontSize: 13, marginTop: 8, lineHeight: 20 },
   cartBadge: { minWidth: 92, padding: 12, borderRadius: radius.md, backgroundColor: colors.primaryDark, borderWidth: 1, borderColor: colors.primaryBright, alignItems: 'center' },
   cartNumber: { color: colors.text, fontSize: 23, fontWeight: '900' }, cartLabel: { color: colors.textMuted, fontSize: 9 },
+  demoNotice: { borderColor: colors.warning, backgroundColor: colors.backgroundSoft }, demoTitle: { color: colors.warning, fontSize: 13, fontWeight: '900' }, demoText: { color: colors.textMuted, fontSize: 10, lineHeight: 16, marginTop: 5 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 }, searchInput: { flex: 1, height: 44, borderRadius: 13, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14 },
   catalogCount: { color: colors.textMuted, fontSize: 11 }, catalog: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   productCard: { minWidth: 210, flexGrow: 1, maxWidth: 285, gap: 8 }, productImage: { width: '100%', height: 145, borderRadius: radius.md, backgroundColor: colors.surface },

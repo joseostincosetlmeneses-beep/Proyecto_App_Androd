@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Card, SectionTitle, StatusPill } from '../components/ui';
 import { ChoiceRow, FormField, FormModal } from '../components/FormModal';
 import type { AuthSession } from '../services/auth.client';
-import { createContact, getContactPage, updateContact, type ContactRecord, type NewContact } from '../services/erp.client';
+import { createContact, deleteContact, getContactPage, updateContact, type ContactRecord, type NewContact } from '../services/erp.client';
 import { colors } from '../theme';
 import { Feedback, messageFrom, MiniButton, ScreenHeading, screenStyles } from './shared';
 
@@ -47,6 +47,28 @@ export function ContactsScreen({ session }: { session: AuthSession }) {
     finally { setBusy(false); }
   }
 
+  async function removeContact(contact: ContactRecord) {
+    setBusy(true); setError('');
+    try {
+      await deleteContact(session, contact.id);
+      if (contacts.length === 1 && page > 1) setPage((value) => value - 1);
+      else await load(false);
+    } catch (cause) { setError(messageFrom(cause)); }
+    finally { setBusy(false); }
+  }
+
+  function confirmDelete(contact: ContactRecord) {
+    const message = `Se eliminará ${contact.name} del directorio. Las ventas o compras históricas conservarán sus datos.`;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      if (window.confirm(message)) void removeContact(contact);
+      return;
+    }
+    Alert.alert(`Eliminar ${contact.type.toLowerCase()}`, message, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: () => void removeContact(contact) }
+    ]);
+  }
+
   return (
     <>
       <ScrollView contentContainerStyle={screenStyles.content} showsVerticalScrollIndicator={false}>
@@ -65,7 +87,7 @@ export function ContactsScreen({ session }: { session: AuthSession }) {
               <View style={styles.avatar}><Text style={styles.avatarText}>{contact.name.charAt(0).toUpperCase()}</Text></View>
               <View style={screenStyles.rowCopy}><Text style={screenStyles.rowTitle}>{contact.name}</Text><Text style={screenStyles.rowDetail}>{contact.email || 'Sin correo'} · {contact.phone || 'Sin teléfono'}{contact.taxId ? ` · ${contact.taxId}` : ''}</Text></View>
               <StatusPill label={contact.type} tone={contact.type === 'Cliente' ? 'info' : 'warning'} />
-              <MiniButton label="Editar" onPress={() => open(contact)} />
+              <View style={screenStyles.actions}><MiniButton label="Editar" onPress={() => open(contact)} /><MiniButton label="Eliminar" tone="danger" disabled={busy} onPress={() => confirmDelete(contact)} /></View>
             </View>
           ))}
           <View style={styles.pagination}><MiniButton label="Anterior" disabled={page <= 1 || loading} onPress={() => setPage((value) => Math.max(1, value - 1))} /><Text style={styles.pageLabel}>Página {page} de {totalPages} · {total} contactos</Text><MiniButton label="Siguiente" disabled={page >= totalPages || loading} onPress={() => setPage((value) => Math.min(totalPages, value + 1))} /></View>

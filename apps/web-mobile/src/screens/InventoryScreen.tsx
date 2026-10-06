@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Card, SectionTitle, StatusPill } from '../components/ui';
 import { ChoiceRow, FormField, FormModal } from '../components/FormModal';
 import type { AuthSession } from '../services/auth.client';
-import { adjustProductStock, createProduct, getProductPage, updateProduct, uploadProductImage, type NewProduct, type ProductRecord } from '../services/erp.client';
+import { adjustProductStock, createProduct, deleteProduct, getProductPage, updateProduct, uploadProductImage, type NewProduct, type ProductRecord } from '../services/erp.client';
 import { colors } from '../theme';
 import { Feedback, messageFrom, MiniButton, money, ScreenHeading, screenStyles } from './shared';
 
@@ -86,6 +86,28 @@ export function InventoryScreen({ session }: { session: AuthSession }) {
     finally { setBusy(false); }
   }
 
+  async function removeProduct(product: ProductRecord) {
+    setBusy(true); setError('');
+    try {
+      await deleteProduct(session, product.id);
+      if (products.length === 1 && page > 1) setPage((value) => value - 1);
+      else await load(false);
+    } catch (cause) { setError(messageFrom(cause)); }
+    finally { setBusy(false); }
+  }
+
+  function confirmDelete(product: ProductRecord) {
+    const message = `Se eliminarán ${product.name}, sus existencias y sus movimientos de inventario. Los documentos históricos conservarán su información.`;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      if (window.confirm(message)) void removeProduct(product);
+      return;
+    }
+    Alert.alert('Eliminar producto', message, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: () => void removeProduct(product) }
+    ]);
+  }
+
   return (
     <>
       <ScrollView contentContainerStyle={screenStyles.content} showsVerticalScrollIndicator={false}>
@@ -107,7 +129,7 @@ export function InventoryScreen({ session }: { session: AuthSession }) {
               <View style={screenStyles.rowCopy}><Text style={screenStyles.rowTitle}>{product.name}</Text><Text style={screenStyles.rowDetail}>{product.sku} · {money(product.precio)}</Text></View>
               <View><Text style={screenStyles.value}>{product.currentStock}</Text><Text style={screenStyles.label}>unidades</Text></View>
               <StatusPill label={status[0]} tone={status[1]} />
-              <View style={screenStyles.actions}><MiniButton label="Ajustar" onPress={() => { setAdjusting(product); setAdjustment({ quantity: '', reason: '' }); setModalError(''); }} /><MiniButton label="Editar" onPress={() => openProduct(product)} /></View>
+              <View style={screenStyles.actions}><MiniButton label="Ajustar" onPress={() => { setAdjusting(product); setAdjustment({ quantity: '', reason: '' }); setModalError(''); }} /><MiniButton label="Editar" onPress={() => openProduct(product)} /><MiniButton label="Eliminar" tone="danger" disabled={busy} onPress={() => confirmDelete(product)} /></View>
             </View>;
           })}
           <View style={styles.pagination}><MiniButton label="Anterior" disabled={page <= 1 || loading} onPress={() => setPage((value) => Math.max(1, value - 1))} /><Text style={styles.pageLabel}>Página {page} de {totalPages} · {total} productos</Text><MiniButton label="Siguiente" disabled={page >= totalPages || loading} onPress={() => setPage((value) => Math.min(totalPages, value + 1))} /></View>

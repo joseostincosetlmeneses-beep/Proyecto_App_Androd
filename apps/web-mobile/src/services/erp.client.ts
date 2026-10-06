@@ -138,12 +138,14 @@ export const getProductPage = (session: AuthSession, page = 1, search = '') => r
 export const getProducts = (session: AuthSession) => getEveryPage<ProductRecord>(session, '/inventory/products');
 export const createProduct = (session: AuthSession, product: NewProduct) => request<ProductRecord>(session, '/inventory/products', { method: 'POST', body: JSON.stringify(product) });
 export const updateProduct = (session: AuthSession, id: string, product: Partial<NewProduct>) => request<ProductRecord>(session, `/inventory/products/${id}`, { method: 'PATCH', body: JSON.stringify(product) });
+export const deleteProduct = (session: AuthSession, id: string) => request<{ id: string; name: string }>(session, `/inventory/products/${id}`, { method: 'DELETE' });
 export const uploadProductImage = (session: AuthSession, id: string, imageData: string) => request<ProductRecord>(session, `/inventory/products/${id}/image`, { method: 'POST', body: JSON.stringify({ imageData }) });
 export const adjustProductStock = (session: AuthSession, id: string, quantity: number, reason: string) => request<ProductRecord>(session, `/inventory/products/${id}/adjust-stock`, { method: 'POST', body: JSON.stringify({ quantity, reason }) });
 export const getContactPage = (session: AuthSession, page = 1, search = '') => requestPage<ContactRecord>(session, `/contacts?page=${page}&limit=100&search=${encodeURIComponent(search)}`);
 export const getContacts = (session: AuthSession) => getEveryPage<ContactRecord>(session, '/contacts');
 export const createContact = (session: AuthSession, contact: NewContact) => request<ContactRecord>(session, '/contacts', { method: 'POST', body: JSON.stringify(contact) });
 export const updateContact = (session: AuthSession, id: string, contact: Partial<NewContact>) => request<ContactRecord>(session, `/contacts/${id}`, { method: 'PATCH', body: JSON.stringify(contact) });
+export const deleteContact = (session: AuthSession, id: string) => request<{ id: string; name: string; type: ContactRecord['type'] }>(session, `/contacts/${id}`, { method: 'DELETE' });
 export const getInvoices = (session: AuthSession) => request<InvoiceRecord[]>(session, '/sales/invoices?limit=100');
 export const createInvoice = (session: AuthSession, invoice: NewInvoice) => request<InvoiceRecord>(session, '/sales/invoices', { method: 'POST', body: JSON.stringify(invoice) });
 export const setInvoiceStatus = (session: AuthSession, id: string, status: 'paid' | 'cancelled') => request<InvoiceRecord>(session, `/sales/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });

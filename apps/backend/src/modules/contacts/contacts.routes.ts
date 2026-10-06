@@ -8,7 +8,7 @@ import {
 import { AppError } from '../../core/errors/app-error.js';
 import { requireRoles } from '../../core/middlewares/auth.middleware.js';
 import { validateRequest } from '../../core/middlewares/validation.middleware.js';
-import { createContact, listContacts, updateContact } from './contacts.service.js';
+import { createContact, deleteContact, listContacts, updateContact } from './contacts.service.js';
 
 const router: Router = Router();
 
@@ -46,6 +46,19 @@ router.patch(
     try {
       if (!req.tenantId) throw new AppError(400, 'Tenant requerido');
       const contact = await updateContact(req.tenantId, String(req.params.id), req.body);
+      res.json({ success: true, data: contact });
+    } catch (error) { next(error); }
+  }
+);
+
+router.delete(
+  '/:id',
+  requireRoles('admin', 'sales'),
+  validateRequest({ params: ResourceIdParamsSchema }),
+  async (req, res, next) => {
+    try {
+      if (!req.tenantId) throw new AppError(400, 'Tenant requerido');
+      const contact = await deleteContact(req.tenantId, String(req.params.id));
       res.json({ success: true, data: contact });
     } catch (error) { next(error); }
   }

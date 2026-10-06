@@ -139,6 +139,18 @@ export async function updateProduct(tenantId: string, id: string, input: UpdateP
   }
 }
 
+export async function deleteProduct(tenantId: string, id: string) {
+  return withTransaction(async (session: mongoose.ClientSession) => {
+    const product = await ProductModel.findOneAndDelete({ _id: id, tenantId }, { session }).lean();
+    if (!product) throw new NotFoundError('Producto no encontrado.');
+    await Promise.all([
+      StockBalanceModel.deleteMany({ tenantId, productId: id }, { session }),
+      StockMovementModel.deleteMany({ tenantId, productId: id }, { session })
+    ]);
+    return { id, name: String(product.name) };
+  });
+}
+
 export async function adjustStock(tenantId: string, id: string, input: StockAdjustmentInput) {
   const product = await ProductModel.findOne({ _id: id, tenantId }).lean();
   if (!product) throw new NotFoundError('Producto no encontrado.');

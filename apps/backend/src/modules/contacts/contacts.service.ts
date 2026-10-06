@@ -53,3 +53,9 @@ export async function updateContact(tenantId: string, id: string, input: UpdateC
   if (!contact) throw new NotFoundError('Contacto no encontrado.');
   return serializeContact(contact as unknown as Record<string, unknown>);
 }
+
+export async function deleteContact(tenantId: string, id: string) {
+  const contact = await ContactModel.findOneAndDelete({ _id: id, tenantId }).lean();
+  if (!contact) throw new NotFoundError('Contacto no encontrado.');
+  return { id, name: contact.name, type: contact.type };
+}

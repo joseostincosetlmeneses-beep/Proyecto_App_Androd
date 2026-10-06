@@ -69,9 +69,9 @@ export function Feedback({ loading, error, empty }: { loading?: boolean; error?:
 }
 
 export const screenStyles = StyleSheet.create({
-  content: { width: '100%', maxWidth: 1180, alignSelf: 'center', padding: spacing.lg, paddingBottom: 120, gap: spacing.lg },
+  content: { width: '100%', maxWidth: 1180, alignSelf: 'center', padding: spacing.md, paddingBottom: 110, gap: spacing.lg },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border },
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.md, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border },
   rowLast: { borderBottomWidth: 0 },
   rowCopy: { flex: 1, minWidth: 120 },
   rowTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
@@ -83,9 +83,9 @@ export const screenStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   headingRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: spacing.md },
-  headingCopy: { flex: 1, minWidth: 240 },
+  headingCopy: { flex: 1, minWidth: 210 },
   eyebrow: { color: colors.primaryBright, fontSize: 10, fontWeight: '900', letterSpacing: 1.5 },
-  title: { color: colors.text, fontSize: 30, lineHeight: 36, fontWeight: '900', marginTop: 7 },
+  title: { color: colors.text, fontSize: 28, lineHeight: 34, fontWeight: '900', marginTop: 7 },
   subtitle: { color: colors.textMuted, fontSize: 13, lineHeight: 20, marginTop: 7, maxWidth: 720 },
   primary: { minHeight: 46, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primary, borderRadius: radius.md, paddingHorizontal: 20 },
   compact: { minHeight: 38, paddingHorizontal: 14 },

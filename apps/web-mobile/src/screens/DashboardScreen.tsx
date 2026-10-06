@@ -51,14 +51,14 @@ export function DashboardScreen({ session }: { session: AuthSession }) {
           <MiniButton label="Exportar Excel" disabled={actionBusy} onPress={() => void exportData('xlsx')} />
         </View>
       </Card>
-      <Card style={styles.actionCard}>
+      {Platform.OS === 'web' ? <Card style={styles.actionCard}>
         <View style={styles.actionCopy}>
           <Text style={styles.actionTitle}>Página pública para clientes</Text>
           <Text style={styles.actionDetail}>Es independiente del ERP. Tus clientes pueden ver imágenes, consultar existencias, agregar productos al carrito y enviarte pedidos.</Text>
           <Text selectable style={styles.publicUrl}>{customerPageUrl}</Text>
         </View>
         <MiniButton label="Abrir página de clientes" onPress={() => void Linking.openURL(customerPageUrl)} />
-      </Card>
+      </Card> : null}
       {data && (data.products < 1000 || data.customers < 1000) ? (
         <Card style={styles.missingCard}>
           <View style={styles.actionCopy}><Text style={styles.missingTitle}>La base todavía no está completa</Text><Text style={styles.actionDetail}>Actualmente hay {data.products} productos y {data.customers} clientes. Completa los 1,000 de cada uno sin duplicar los existentes.</Text></View>

@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import type { AuthSession } from './auth.client';
 
 const SESSION_KEY = 'orbit-erp.auth-session';
+const ACTIVE_SCREEN_KEY = 'orbit-erp.active-screen';
 
 export async function loadSession(): Promise<AuthSession | null> {
   try {
@@ -34,5 +35,31 @@ export async function clearSession() {
     return;
   }
   await SecureStore.deleteItemAsync(SESSION_KEY);
+}
+
+export async function loadActiveScreen(): Promise<string | null> {
+  try {
+    return Platform.OS === 'web'
+      ? globalThis.localStorage?.getItem(ACTIVE_SCREEN_KEY) ?? null
+      : await SecureStore.getItemAsync(ACTIVE_SCREEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export async function saveActiveScreen(screen: string) {
+  if (Platform.OS === 'web') {
+    globalThis.localStorage?.setItem(ACTIVE_SCREEN_KEY, screen);
+    return;
+  }
+  await SecureStore.setItemAsync(ACTIVE_SCREEN_KEY, screen);
+}
+
+export async function clearActiveScreen() {
+  if (Platform.OS === 'web') {
+    globalThis.localStorage?.removeItem(ACTIVE_SCREEN_KEY);
+    return;
+  }
+  await SecureStore.deleteItemAsync(ACTIVE_SCREEN_KEY);
 }
 

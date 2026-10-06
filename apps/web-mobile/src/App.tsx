@@ -7,8 +7,10 @@ import { AuthScreen } from './screens/AuthScreen';
 import { ContactsScreen, DashboardScreen, InventoryScreen, ProfileScreen, ReportsScreen, SalesScreen, StorefrontScreen } from './screens/Screens';
 import { getApiBaseUrl, pingApi } from './services/api.client';
 import { AuthApiError, getCurrentUser, type AuthSession } from './services/auth.client';
-import { clearSession, loadSession, saveSession } from './services/auth.storage';
+import { clearActiveScreen, clearSession, loadActiveScreen, loadSession, saveActiveScreen, saveSession } from './services/auth.storage';
 import { colors } from './theme';
+
+const validScreens: ScreenKey[] = ['dashboard', 'sales', 'inventory', 'contacts', 'reports', 'profile'];
 
 export default function App() {
   const { height } = useWindowDimensions();
@@ -31,8 +33,9 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
-    loadSession().then(async (stored) => {
+    Promise.all([loadSession(), loadActiveScreen()]).then(async ([stored, storedScreen]) => {
       if (!mounted) return;
+      if (storedScreen && validScreens.includes(storedScreen as ScreenKey)) setActive(storedScreen as ScreenKey);
       setSession(stored);
       setSessionReady(true);
       if (!stored) return;
@@ -54,12 +57,19 @@ export default function App() {
 
   async function handleAuthenticated(nextSession: AuthSession) {
     await saveSession(nextSession);
+    await saveActiveScreen('dashboard');
     setSession(nextSession);
     setActive('dashboard');
   }
 
+  function handleNavigate(screen: ScreenKey) {
+    setActive(screen);
+    void saveActiveScreen(screen);
+  }
+
   async function handleLogout() {
     await clearSession();
+    await clearActiveScreen();
     setSession(null);
     setPaletteOpen(false);
     setActive('dashboard');
@@ -95,7 +105,7 @@ export default function App() {
         active={active}
         apiOnline={apiOnline}
         user={session.user}
-        onNavigate={setActive}
+        onNavigate={handleNavigate}
         onOpenCommands={() => setPaletteOpen(true)}
       >
         {content}
@@ -104,7 +114,7 @@ export default function App() {
         visible={paletteOpen}
         onClose={() => setPaletteOpen(false)}
         onSelect={(screen) => {
-          setActive(screen);
+          handleNavigate(screen);
           setPaletteOpen(false);
         }}
       />

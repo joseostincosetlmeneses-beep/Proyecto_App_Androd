@@ -41,7 +41,7 @@ export function SalesScreen({ session }: { session: AuthSession }) {
   }, [session]);
   useEffect(() => {
     void load();
-    const timer = setInterval(() => { void loadInvoices(false); }, 10_000);
+    const timer = setInterval(() => { void loadInvoices(false); }, 3_000);
     return () => clearInterval(timer);
   }, [load, loadInvoices]);
 
@@ -83,7 +83,7 @@ export function SalesScreen({ session }: { session: AuthSession }) {
     <>
       <ScrollView contentContainerStyle={screenStyles.content} showsVerticalScrollIndicator={false}>
         <ScreenHeading eyebrow="VENTAS Y DOCUMENTOS" title="Facturas" subtitle="Registra ventas, actualiza pagos y genera documentos PDF." action="Nueva factura" onAction={openCreate} />
-        <View style={styles.refreshRow}><Text style={styles.refreshHint}>Las compras simuladas aparecen automáticamente en un máximo de 10 segundos.</Text><MiniButton label="Actualizar ventas" onPress={() => void loadInvoices()} /></View>
+        <View style={styles.refreshRow}><Text style={styles.refreshHint}>Sincronización automática: las compras simuladas aparecen en aproximadamente 3 segundos.</Text><MiniButton label="Actualizar ventas" onPress={() => void loadInvoices()} /></View>
         <Feedback loading={loading} error={error} />
         <View style={screenStyles.grid}>
           <Card style={styles.stat}><Text style={styles.statLabel}>Ventas registradas</Text><Text style={styles.statValue}>{money(sales)}</Text></Card>

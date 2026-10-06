@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { AppError } from '../../core/errors/app-error.js';
 import { requireRoles } from '../../core/middlewares/auth.middleware.js';
 import { validateRequest } from '../../core/middlewares/validation.middleware.js';
-import { adjustStock, createProduct, listProducts, saveProductImage, updateProduct } from './inventory.service.js';
+import { adjustStock, createProduct, deleteProduct, listProducts, saveProductImage, updateProduct } from './inventory.service.js';
 
 const router: Router = Router();
 
@@ -48,6 +48,19 @@ router.patch(
     try {
       if (!req.tenantId) throw new AppError(400, 'Tenant requerido');
       const product = await updateProduct(req.tenantId, String(req.params.id), req.body);
+      res.json({ success: true, data: product });
+    } catch (error) { next(error); }
+  }
+);
+
+router.delete(
+  '/products/:id',
+  requireRoles('admin', 'inventory', 'purchasing'),
+  validateRequest({ params: ResourceIdParamsSchema }),
+  async (req, res, next) => {
+    try {
+      if (!req.tenantId) throw new AppError(400, 'Tenant requerido');
+      const product = await deleteProduct(req.tenantId, String(req.params.id));
       res.json({ success: true, data: product });
     } catch (error) { next(error); }
   }

@@ -17,13 +17,18 @@ export function DashboardScreen({ session }: { session: AuthSession }) {
     ? `${window.location.origin}?store=${encodeURIComponent(session.user.tenantId)}`
     : `https://proyecto-app-androd.joseostincosetlmeneses.workers.dev?store=${encodeURIComponent(session.user.tenantId)}`;
 
-  const load = useCallback(async () => {
-    setLoading(true); setError('');
+  const load = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setError('');
     try { setData(await getDashboard(session)); } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo cargar el tablero.'); }
-    finally { setLoading(false); }
+    finally { if (showLoading) setLoading(false); }
   }, [session]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+    const timer = setInterval(() => { void load(false); }, 5_000);
+    return () => clearInterval(timer);
+  }, [load]);
 
   async function loadSamples() {
     setActionBusy(true); setActionMessage(''); setError('');

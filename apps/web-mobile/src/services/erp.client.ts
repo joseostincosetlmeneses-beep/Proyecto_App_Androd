@@ -131,6 +131,7 @@ export const getProductPage = (session: AuthSession, page = 1, search = '') => r
 export const getProducts = (session: AuthSession) => getEveryPage<ProductRecord>(session, '/inventory/products');
 export const createProduct = (session: AuthSession, product: NewProduct) => request<ProductRecord>(session, '/inventory/products', { method: 'POST', body: JSON.stringify(product) });
 export const updateProduct = (session: AuthSession, id: string, product: Partial<NewProduct>) => request<ProductRecord>(session, `/inventory/products/${id}`, { method: 'PATCH', body: JSON.stringify(product) });
+export const uploadProductImage = (session: AuthSession, id: string, imageData: string) => request<ProductRecord>(session, `/inventory/products/${id}/image`, { method: 'POST', body: JSON.stringify({ imageData }) });
 export const adjustProductStock = (session: AuthSession, id: string, quantity: number, reason: string) => request<ProductRecord>(session, `/inventory/products/${id}/adjust-stock`, { method: 'POST', body: JSON.stringify({ quantity, reason }) });
 export const getContactPage = (session: AuthSession, page = 1, search = '') => requestPage<ContactRecord>(session, `/contacts?page=${page}&limit=100&search=${encodeURIComponent(search)}`);
 export const getContacts = (session: AuthSession) => getEveryPage<ContactRecord>(session, '/contacts');

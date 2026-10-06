@@ -24,7 +24,8 @@ export function createApp(): Express {
       callback(new AppError(403, 'Origen no permitido por CORS'));
     }
   }));
-  app.use(express.json());
+  // Product photos are uploaded as bounded base64 payloads and stored with the tenant catalog.
+  app.use(express.json({ limit: '2mb' }));
 
   // Endpoint de salud del sistema
   app.get('/health', (_req, res) => {

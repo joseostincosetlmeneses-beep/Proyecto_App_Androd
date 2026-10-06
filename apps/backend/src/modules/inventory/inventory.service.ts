@@ -22,12 +22,15 @@ export type ProductRecord = {
 };
 
 function serializeProduct(product: Record<string, unknown>, currentStock: number): ProductRecord {
+  const imageVersion = product.updatedAt instanceof Date ? product.updatedAt.getTime() : Date.parse(String(product.updatedAt ?? '')) || Date.now();
   return {
     id: String(product._id),
     sku: String(product.sku),
     barcode: String(product.barcode),
     name: String(product.name),
-    imageUrl: typeof product.imageUrl === 'string' && product.imageUrl.length > 0
+    imageUrl: product.hasImage === true
+      ? `${env.PUBLIC_API_URL.replace(/\/$/, '')}/api/store/product-images/${String(product._id)}?v=${imageVersion}`
+      : typeof product.imageUrl === 'string' && product.imageUrl.length > 0
       ? product.imageUrl
       : `${env.PUBLIC_API_URL.replace(/\/$/, '')}/api/store/images/${encodeURIComponent(String(product.sku))}.svg`,
     costo: Number(product.costo),
@@ -37,6 +40,21 @@ function serializeProduct(product: Record<string, unknown>, currentStock: number
     createdAt: product.createdAt instanceof Date ? product.createdAt : undefined,
     updatedAt: product.updatedAt instanceof Date ? product.updatedAt : undefined
   };
+}
+
+export async function saveProductImage(tenantId: string, id: string, imageData: string) {
+  const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(imageData);
+  if (!match?.[1] || !match[2]) throw new ValidationError('Selecciona una imagen JPG, PNG o WebP válida.');
+  const size = Buffer.byteLength(match[2], 'base64');
+  if (size > 1_500_000) throw new ValidationError('La imagen debe pesar menos de 1.5 MB.');
+  const product = await ProductModel.findOneAndUpdate(
+    { _id: id, tenantId },
+    { $set: { imageData: match[2], imageMime: match[1], hasImage: true } },
+    { new: true, runValidators: true }
+  ).lean();
+  if (!product) throw new NotFoundError('Producto no encontrado.');
+  const balance = await StockBalanceModel.findOne({ tenantId, productId: id }).lean();
+  return serializeProduct(product as unknown as Record<string, unknown>, balance?.currentStock ?? 0);
 }
 
 export async function listProducts(tenantId: string, options: CatalogPaginationQuery) {

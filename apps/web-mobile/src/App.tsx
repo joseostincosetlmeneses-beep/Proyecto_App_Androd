@@ -71,7 +71,6 @@ export default function App() {
       case 'sales': return <SalesScreen session={session} />;
       case 'inventory': return <InventoryScreen session={session} />;
       case 'contacts': return <ContactsScreen session={session} />;
-      case 'store': return <StorefrontScreen tenantId={session.user.tenantId} embedded />;
       case 'reports': return <ReportsScreen session={session} />;
       case 'profile': return <ProfileScreen apiOnline={apiOnline} apiUrl={getApiBaseUrl()} user={session!.user} onLogout={handleLogout} />;
       default: return <DashboardScreen session={session} />;

@@ -84,6 +84,7 @@ async function request<T>(session: AuthSession, path: string, init?: RequestInit
   try {
     response = await fetch(`${getApiBaseUrl()}${path}`, {
       ...init,
+      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session.token}`,
@@ -104,7 +105,7 @@ async function request<T>(session: AuthSession, path: string, init?: RequestInit
 }
 
 async function requestPage<T>(session: AuthSession, path: string): Promise<PageResult<T>> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, { headers: { Authorization: `Bearer ${session.token}`, 'X-Tenant-Id': session.user.tenantId } });
+  const response = await fetch(`${getApiBaseUrl()}${path}`, { cache: 'no-store', headers: { Authorization: `Bearer ${session.token}`, 'X-Tenant-Id': session.user.tenantId } });
   const payload = await response.json().catch(() => null) as ApiEnvelope<T[]> | null;
   if (!response.ok || !payload?.success || !payload.data) throw new ErpApiError(payload?.error ?? 'No se pudo cargar la página.', response.status);
   return { items: payload.data, page: payload.meta?.page ?? 1, total: payload.meta?.total ?? payload.data.length, totalPages: payload.meta?.totalPages ?? 1 };

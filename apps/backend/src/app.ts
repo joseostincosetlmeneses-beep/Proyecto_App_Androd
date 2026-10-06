@@ -14,6 +14,11 @@ import documentsRoutes from './modules/documents/documents.routes.js';
 import setupRoutes from './modules/setup/setup.routes.js';
 import exportRoutes from './modules/exports/export.routes.js';
 import storeRoutes from './modules/store/store.routes.js';
+import purchasesRoutes from './modules/purchases/purchases.routes.js';
+import financeRoutes from './modules/finance/finance.routes.js';
+import projectsRoutes from './modules/projects/projects.routes.js';
+import teamRoutes from './modules/team/team.routes.js';
+import activityRoutes from './modules/activity/activity.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -56,6 +61,11 @@ export function createApp(): Express {
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/setup', setupRoutes);
   app.use('/api/exports', exportRoutes);
+  app.use('/api/purchases', purchasesRoutes);
+  app.use('/api/finance', financeRoutes);
+  app.use('/api/projects', projectsRoutes);
+  app.use('/api/team', teamRoutes);
+  app.use('/api/activity', activityRoutes);
 
   // Manejador global centralizado de errores
   const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {

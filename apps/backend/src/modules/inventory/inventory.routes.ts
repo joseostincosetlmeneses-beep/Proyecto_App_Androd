@@ -16,7 +16,7 @@ const router: Router = Router();
 
 router.get(
   '/products',
-  requireRoles('admin', 'sales', 'inventory', 'accounting'),
+  requireRoles('admin', 'sales', 'inventory', 'accounting', 'purchasing'),
   validateRequest({ query: CatalogPaginationQuerySchema }),
   async (req, res, next) => {
     try {
@@ -29,7 +29,7 @@ router.get(
 
 router.post(
   '/products',
-  requireRoles('admin', 'inventory'),
+  requireRoles('admin', 'inventory', 'purchasing'),
   validateRequest({ body: CreateProductInputSchema }),
   async (req, res, next) => {
     try {
@@ -42,7 +42,7 @@ router.post(
 
 router.patch(
   '/products/:id',
-  requireRoles('admin', 'inventory'),
+  requireRoles('admin', 'inventory', 'purchasing'),
   validateRequest({ params: ResourceIdParamsSchema, body: UpdateProductInputSchema }),
   async (req, res, next) => {
     try {
@@ -55,7 +55,7 @@ router.patch(
 
 router.post(
   '/products/:id/image',
-  requireRoles('admin', 'inventory'),
+  requireRoles('admin', 'inventory', 'purchasing'),
   validateRequest({ params: ResourceIdParamsSchema, body: z.object({ imageData: z.string().max(2_100_000) }) }),
   async (req, res, next) => {
     try {
@@ -68,7 +68,7 @@ router.post(
 
 router.post(
   '/products/:id/adjust-stock',
-  requireRoles('admin', 'inventory'),
+  requireRoles('admin', 'inventory', 'purchasing'),
   validateRequest({ params: ResourceIdParamsSchema, body: StockAdjustmentInputSchema }),
   async (req, res, next) => {
     try {

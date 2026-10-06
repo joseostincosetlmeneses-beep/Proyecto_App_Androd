@@ -78,6 +78,12 @@ export type PageResult<T> = { items: T[]; page: number; total: number; totalPage
 export type StoreInfo = { id: string; name: string };
 export type StoreProduct = Pick<ProductRecord, 'id' | 'sku' | 'name' | 'imageUrl' | 'precio' | 'currentStock'>;
 export type StoreOrder = { id: string; number: string; total: number; status: string };
+export type PurchaseRecord = { id: string; number: string; supplier: { id: string; name: string }; items: Array<{ productId: string; sku: string; description: string; quantity: number; unitCost: number }>; total: number; status: 'draft' | 'ordered' | 'received' | 'cancelled'; expectedAt?: string; createdAt: string };
+export type FinanceRecord = { id: string; type: 'income' | 'expense'; category: string; concept: string; amount: number; occurredAt: string };
+export type FinanceData = { items: FinanceRecord[]; summary: { income: number; expense: number; balance: number } };
+export type ProjectRecord = { id: string; name: string; client: string; description: string; status: 'planned' | 'active' | 'completed' | 'paused'; budget: number; progress: number; dueAt?: string };
+export type TeamUser = { id: string; name: string; email: string; roles: string[]; isActive: boolean; createdAt: string };
+export type ActivityRecord = { id: string; userId: string; userName: string; action: string; resource: string; statusCode: number; timestamp: string };
 
 async function request<T>(session: AuthSession, path: string, init?: RequestInit): Promise<T> {
   let response: Response;
@@ -150,3 +156,15 @@ export const getStoreProducts = async (tenantId: string, page = 1, search = '') 
   return { items: result.data, page: result.meta?.page ?? page, total: result.meta?.total ?? result.data.length, totalPages: result.meta?.totalPages ?? 1 } satisfies PageResult<StoreProduct>;
 };
 export const createStoreOrder = async (tenantId: string, input: { customer: { name: string; email: string; phone: string }; items: Array<{ productId: string; quantity: number }> }) => (await publicRequest<StoreOrder>(`/store/${tenantId}/orders`, { method: 'POST', body: JSON.stringify(input) })).data;
+export const getPurchases = (session: AuthSession) => request<PurchaseRecord[]>(session, '/purchases');
+export const createPurchase = (session: AuthSession, input: { supplierId: string; expectedAt?: string; items: Array<{ productId: string; quantity: number; unitCost: number }> }) => request<PurchaseRecord>(session, '/purchases', { method: 'POST', body: JSON.stringify(input) });
+export const setPurchaseStatus = (session: AuthSession, id: string, status: 'ordered' | 'received' | 'cancelled') => request<PurchaseRecord>(session, `/purchases/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+export const getFinance = (session: AuthSession) => request<FinanceData>(session, '/finance');
+export const createFinanceMovement = (session: AuthSession, input: { type: 'income' | 'expense'; category: string; concept: string; amount: number; occurredAt: string }) => request<FinanceRecord>(session, '/finance', { method: 'POST', body: JSON.stringify(input) });
+export const getProjects = (session: AuthSession) => request<ProjectRecord[]>(session, '/projects');
+export const createProject = (session: AuthSession, input: Omit<ProjectRecord, 'id'>) => request<ProjectRecord>(session, '/projects', { method: 'POST', body: JSON.stringify(input) });
+export const updateProject = (session: AuthSession, id: string, input: Partial<Omit<ProjectRecord, 'id'>>) => request<ProjectRecord>(session, `/projects/${id}`, { method: 'PATCH', body: JSON.stringify(input) });
+export const getTeam = (session: AuthSession) => request<TeamUser[]>(session, '/team');
+export const createTeamUser = (session: AuthSession, input: { name: string; email: string; password: string; role: string }) => request<TeamUser>(session, '/team', { method: 'POST', body: JSON.stringify(input) });
+export const updateTeamUser = (session: AuthSession, id: string, input: { role?: string; isActive?: boolean }) => request<TeamUser>(session, `/team/${id}`, { method: 'PATCH', body: JSON.stringify(input) });
+export const getActivity = (session: AuthSession) => request<ActivityRecord[]>(session, '/activity');

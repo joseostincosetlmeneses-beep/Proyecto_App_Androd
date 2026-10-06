@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { Request, Response } from 'express';
 import { tenantMiddleware } from '../src/core/middlewares/tenant.middleware.js';
+import { sanitizeAuditChanges } from '../src/core/middlewares/audit.middleware.js';
 
 function mockResponse() {
   return {
@@ -52,5 +53,11 @@ describe('security middlewares', () => {
 
     const error = next.mock.calls[0]?.[0];
     expect(error?.statusCode).toBe(401);
+  });
+
+  it('redacts credentials from audit changes', () => {
+    expect(sanitizeAuditChanges({ name: 'Ana', password: 'super-secret', nested: { apiToken: 'token', amount: 20 } })).toEqual({
+      name: 'Ana', password: '[REDACTED]', nested: { apiToken: '[REDACTED]', amount: 20 }
+    });
   });
 });

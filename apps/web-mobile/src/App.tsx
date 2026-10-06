@@ -4,13 +4,13 @@ import { AppShell, type ScreenKey } from './components/AppShell';
 import { CommandPalette } from './components/CommandPalette';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { AuthScreen } from './screens/AuthScreen';
-import { ContactsScreen, DashboardScreen, InventoryScreen, ProfileScreen, ReportsScreen, SalesScreen, StorefrontScreen } from './screens/Screens';
+import { ActivityScreen, ContactsScreen, DashboardScreen, FinanceScreen, InventoryScreen, ProfileScreen, ProjectsScreen, PurchasesScreen, ReportsScreen, SalesScreen, StorefrontScreen, TeamScreen } from './screens/Screens';
 import { getApiBaseUrl, pingApi } from './services/api.client';
 import { AuthApiError, getCurrentUser, type AuthSession } from './services/auth.client';
 import { clearActiveScreen, clearSession, loadActiveScreen, loadSession, saveActiveScreen, saveSession } from './services/auth.storage';
 import { colors } from './theme';
 
-const validScreens: ScreenKey[] = ['dashboard', 'sales', 'inventory', 'contacts', 'reports', 'profile'];
+const validScreens: ScreenKey[] = ['dashboard', 'sales', 'inventory', 'contacts', 'purchases', 'finance', 'projects', 'team', 'activity', 'reports', 'profile'];
 
 export default function App() {
   const { height } = useWindowDimensions();
@@ -81,6 +81,11 @@ export default function App() {
       case 'sales': return <SalesScreen session={session} />;
       case 'inventory': return <InventoryScreen session={session} />;
       case 'contacts': return <ContactsScreen session={session} />;
+      case 'purchases': return <PurchasesScreen session={session} />;
+      case 'finance': return <FinanceScreen session={session} />;
+      case 'projects': return <ProjectsScreen session={session} />;
+      case 'team': return <TeamScreen session={session} />;
+      case 'activity': return <ActivityScreen session={session} />;
       case 'reports': return <ReportsScreen session={session} />;
       case 'profile': return <ProfileScreen apiOnline={apiOnline} apiUrl={getApiBaseUrl()} user={session!.user} onLogout={handleLogout} />;
       default: return <DashboardScreen session={session} />;
@@ -112,6 +117,7 @@ export default function App() {
       </AppShell>
       <CommandPalette
         visible={paletteOpen}
+        roles={session.user.roles}
         onClose={() => setPaletteOpen(false)}
         onSelect={(screen) => {
           handleNavigate(screen);

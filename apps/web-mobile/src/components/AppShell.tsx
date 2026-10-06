@@ -1,21 +1,24 @@
 import React, { type PropsWithChildren, useState } from 'react';
-import { Platform, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Brand, IconButton, SearchField, StatusPill } from './ui';
 import { colors, radius, spacing } from '../theme';
 import type { AuthUser } from '../services/auth.client';
 
-export type ScreenKey = 'dashboard' | 'sales' | 'inventory' | 'contacts' | 'reports' | 'profile';
+export type ScreenKey = 'dashboard' | 'sales' | 'inventory' | 'contacts' | 'purchases' | 'finance' | 'projects' | 'team' | 'activity' | 'reports' | 'profile';
 
-const navigation: Array<{ key: ScreenKey; label: string; glyph: string }> = [
+const navigation: Array<{ key: ScreenKey; label: string; glyph: string; roles?: string[] }> = [
   { key: 'dashboard', label: 'Dashboard', glyph: '⌂' },
-  { key: 'sales', label: 'Ventas', glyph: '↗' },
-  { key: 'inventory', label: 'Inventario', glyph: '◫' },
-  { key: 'contacts', label: 'Contactos', glyph: '◎' },
-  { key: 'reports', label: 'Reportes', glyph: '▤' },
+  { key: 'sales', label: 'Ventas', glyph: '↗', roles: ['sales', 'accounting'] },
+  { key: 'purchases', label: 'Compras', glyph: '▣', roles: ['purchasing', 'accounting'] },
+  { key: 'inventory', label: 'Inventario', glyph: '◫', roles: ['sales', 'purchasing'] },
+  { key: 'contacts', label: 'Contactos', glyph: '◎', roles: ['sales', 'accounting', 'purchasing', 'projects'] },
+  { key: 'finance', label: 'Finanzas', glyph: '$', roles: ['accounting'] },
+  { key: 'projects', label: 'Proyectos', glyph: '◇', roles: ['projects', 'sales'] },
+  { key: 'team', label: 'Equipo', glyph: '♙', roles: ['admin'] },
+  { key: 'activity', label: 'Actividad', glyph: '◷', roles: ['admin'] },
+  { key: 'reports', label: 'Reportes', glyph: '▤', roles: ['accounting', 'sales'] },
   { key: 'profile', label: 'Perfil', glyph: '○' }
 ];
-const mobileNavigation = navigation.filter((item) => ['dashboard', 'sales', 'inventory', 'contacts'].includes(item.key));
-const mobileMoreNavigation = navigation.filter((item) => ['reports', 'profile'].includes(item.key));
 
 export function AppShell({
   active,
@@ -34,6 +37,9 @@ export function AppShell({
   const { width } = useWindowDimensions();
   const desktop = width >= 900;
   const [moreOpen, setMoreOpen] = useState(false);
+  const allowedNavigation = navigation.filter((item) => user.roles.includes('admin') || !item.roles || item.roles.some((role) => user.roles.includes(role)));
+  const mobileNavigation = allowedNavigation.filter((item) => ['dashboard', 'sales', 'inventory', 'contacts'].includes(item.key)).slice(0, 4);
+  const mobileMoreNavigation = allowedNavigation.filter((item) => !mobileNavigation.some((main) => main.key === item.key));
   const moreActive = mobileMoreNavigation.some((item) => item.key === active);
 
   function navigate(screen: ScreenKey) {
@@ -49,11 +55,11 @@ export function AppShell({
         {desktop ? (
           <View style={styles.sidebar}>
             <Brand />
-            <View style={styles.sideNav}>
-              {navigation.map((item) => (
+            <ScrollView style={styles.sideNav} contentContainerStyle={styles.sideNavContent} showsVerticalScrollIndicator={false}>
+              {allowedNavigation.map((item) => (
                 <NavButton key={item.key} active={item.key === active} item={item} onPress={() => navigate(item.key)} />
               ))}
-            </View>
+            </ScrollView>
             <View style={styles.sideFooter}>
               <View style={styles.workspaceIcon}><Text style={styles.workspaceInitial}>{user.name.slice(0, 1).toUpperCase()}</Text></View>
               <View style={styles.workspaceCopy}><Text numberOfLines={1} style={styles.workspaceName}>{user.name}</Text><Text style={styles.workspaceRole}>{user.roles.includes('admin') ? 'Administrador' : 'Usuario'}</Text></View>
@@ -78,7 +84,7 @@ export function AppShell({
             <>
               {moreOpen ? <View style={styles.moreMenu}>
                 <Text style={styles.moreTitle}>MÁS OPCIONES</Text>
-                {mobileMoreNavigation.map((item) => <Pressable key={item.key} onPress={() => navigate(item.key)} style={({ pressed }) => [styles.moreItem, item.key === active && styles.moreItemActive, pressed && styles.pressed]}><Text style={[styles.moreGlyph, item.key === active && styles.bottomGlyphActive]}>{item.glyph}</Text><Text style={[styles.moreLabel, item.key === active && styles.bottomLabelActive]}>{item.label}</Text></Pressable>)}
+                <ScrollView style={styles.moreScroll}>{mobileMoreNavigation.map((item) => <Pressable key={item.key} onPress={() => navigate(item.key)} style={({ pressed }) => [styles.moreItem, item.key === active && styles.moreItemActive, pressed && styles.pressed]}><Text style={[styles.moreGlyph, item.key === active && styles.bottomGlyphActive]}>{item.glyph}</Text><Text style={[styles.moreLabel, item.key === active && styles.bottomLabelActive]}>{item.label}</Text></Pressable>)}</ScrollView>
               </View> : null}
               <View style={styles.bottomNav}>
               {mobileNavigation.map((item) => (
@@ -134,7 +140,7 @@ const styles = StyleSheet.create({
   ambientSide: { position: 'absolute', width: 340, height: 340, borderRadius: 170, backgroundColor: 'rgba(21, 87, 200, 0.10)', bottom: -220, left: -180 },
   shell: { flex: 1, flexDirection: 'row' },
   sidebar: { width: 252, padding: spacing.lg, borderRightWidth: 1, borderRightColor: colors.border, backgroundColor: 'rgba(5, 11, 24, 0.96)' },
-  sideNav: { flex: 1, marginTop: spacing.xxl, gap: 7 },
+  sideNav: { flex: 1, marginTop: spacing.lg }, sideNavContent: { gap: 5, paddingBottom: spacing.md },
   navButton: { minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: radius.md, paddingHorizontal: 10, position: 'relative' },
   navButtonActive: { backgroundColor: colors.glow, borderWidth: 1, borderColor: colors.borderStrong },
   navGlyphWrap: { width: 32, height: 32, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
@@ -165,6 +171,7 @@ const styles = StyleSheet.create({
   bottomLabel: { color: colors.textDim, fontSize: 8, fontWeight: '600' },
   bottomLabelActive: { color: colors.text },
   moreMenu: { position: 'absolute', right: 12, bottom: Platform.OS === 'ios' ? 82 : 78, width: 190, borderRadius: 18, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.cardElevated, padding: 8, shadowColor: '#000000', shadowOpacity: 0.55, shadowRadius: 20, shadowOffset: { width: 0, height: 10 } },
+  moreScroll: { maxHeight: 390 },
   moreTitle: { color: colors.textDim, fontSize: 8, fontWeight: '900', letterSpacing: 1.2, paddingHorizontal: 10, paddingVertical: 7 },
   moreItem: { minHeight: 48, borderRadius: 13, flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 12 },
   moreItemActive: { backgroundColor: colors.glow }, moreGlyph: { color: colors.textMuted, fontSize: 17 }, moreLabel: { color: colors.textMuted, fontSize: 12, fontWeight: '700' },

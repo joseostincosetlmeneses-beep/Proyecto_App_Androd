@@ -13,6 +13,7 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import documentsRoutes from './modules/documents/documents.routes.js';
 import setupRoutes from './modules/setup/setup.routes.js';
 import exportRoutes from './modules/exports/export.routes.js';
+import storeRoutes from './modules/store/store.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -39,6 +40,7 @@ export function createApp(): Express {
 
   // Los documentos usan enlaces firmados, breves y de un solo recurso.
   app.use('/api/documents', documentsRoutes);
+  app.use('/api/store', storeRoutes);
 
   // Middlewares globales de seguridad y contexto
   app.use(authMiddleware);

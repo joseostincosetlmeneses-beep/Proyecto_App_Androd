@@ -24,6 +24,7 @@ export const ProductSchema = z.object({
   sku: z.string().min(1),
   barcode: z.string().min(1),
   name: z.string().min(1),
+  imageUrl: z.union([z.string().trim().url().refine((value) => /^https?:\/\//i.test(value), 'La imagen debe usar HTTP o HTTPS'), z.literal('')]).optional(),
   costo: z.number().nonnegative(),
   precio: z.number().nonnegative(),
   stockMinimo: z.number().nonnegative()

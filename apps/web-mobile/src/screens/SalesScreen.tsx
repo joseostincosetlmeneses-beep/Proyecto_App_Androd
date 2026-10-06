@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Card, SectionTitle, StatusPill } from '../components/ui';
 import { FormField, FormModal } from '../components/FormModal';
 import type { AuthSession } from '../services/auth.client';
@@ -20,6 +20,8 @@ export function SalesScreen({ session }: { session: AuthSession }) {
   const [lines, setLines] = useState<DraftLine[]>([{ productId: '', quantity: '1' }]);
   const [busy, setBusy] = useState(false);
   const [modalError, setModalError] = useState('');
+  const [customerQuery, setCustomerQuery] = useState('');
+  const [productQuery, setProductQuery] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -31,7 +33,7 @@ export function SalesScreen({ session }: { session: AuthSession }) {
   }, [session]);
   useEffect(() => { void load(); }, [load]);
 
-  function openCreate() { setCustomerId(''); setLines([{ productId: '', quantity: '1' }]); setModalError(''); setCreating(true); }
+  function openCreate() { setCustomerId(''); setLines([{ productId: '', quantity: '1' }]); setCustomerQuery(''); setProductQuery(''); setModalError(''); setCreating(true); }
 
   async function saveInvoice() {
     const customer = contacts.find((item) => item.id === customerId);
@@ -62,6 +64,8 @@ export function SalesScreen({ session }: { session: AuthSession }) {
 
   const sales = invoices.filter((item) => item.status !== 'cancelled').reduce((sum, item) => sum + item.total, 0);
   const receivables = invoices.filter((item) => item.status === 'pending').reduce((sum, item) => sum + item.total, 0);
+  const visibleContacts = contacts.filter((contact) => `${contact.name} ${contact.email ?? ''}`.toLowerCase().includes(customerQuery.trim().toLowerCase())).slice(0, 40);
+  const visibleProducts = products.filter((product) => `${product.name} ${product.sku}`.toLowerCase().includes(productQuery.trim().toLowerCase())).slice(0, 40);
 
   return (
     <>
@@ -91,12 +95,14 @@ export function SalesScreen({ session }: { session: AuthSession }) {
       </ScrollView>
       <FormModal visible={creating} title="Nueva factura" description="El precio se toma del catálogo y el stock se descuenta automáticamente." submitLabel="Emitir factura" busy={busy} error={modalError} onClose={() => setCreating(false)} onSubmit={() => void saveInvoice()}>
         <Text style={styles.formLabel}>Cliente</Text>
-        <View style={styles.options}>{contacts.map((contact) => <Pressable key={contact.id} onPress={() => setCustomerId(contact.id)} style={[styles.option, customerId === contact.id && styles.optionActive]}><Text style={[styles.optionText, customerId === contact.id && styles.optionTextActive]}>{contact.name}</Text></Pressable>)}</View>
+        <TextInput style={styles.search} placeholder="Buscar cliente por nombre o correo" placeholderTextColor={colors.textMuted} value={customerQuery} onChangeText={setCustomerQuery} />
+        <View style={styles.options}>{visibleContacts.map((contact) => <Pressable key={contact.id} onPress={() => setCustomerId(contact.id)} style={[styles.option, customerId === contact.id && styles.optionActive]}><Text style={[styles.optionText, customerId === contact.id && styles.optionTextActive]}>{contact.name}</Text></Pressable>)}</View>
         {contacts.length === 0 ? <Feedback empty="Primero agrega un cliente en Contactos." /> : null}
         <Text style={styles.formLabel}>Productos</Text>
+        <TextInput style={styles.search} placeholder="Buscar producto por nombre o SKU" placeholderTextColor={colors.textMuted} value={productQuery} onChangeText={setProductQuery} />
         {lines.map((line, lineIndex) => (
           <View key={lineIndex} style={styles.lineEditor}>
-            <View style={styles.options}>{products.map((product) => <Pressable key={product.id} onPress={() => setLines(lines.map((item, index) => index === lineIndex ? { ...item, productId: product.id } : item))} style={[styles.option, line.productId === product.id && styles.optionActive]}><Text numberOfLines={1} style={[styles.optionText, line.productId === product.id && styles.optionTextActive]}>{product.name} ({product.currentStock})</Text></Pressable>)}</View>
+            <View style={styles.options}>{visibleProducts.map((product) => <Pressable key={product.id} onPress={() => setLines(lines.map((item, index) => index === lineIndex ? { ...item, productId: product.id } : item))} style={[styles.option, line.productId === product.id && styles.optionActive]}><Text numberOfLines={1} style={[styles.optionText, line.productId === product.id && styles.optionTextActive]}>{product.name} ({product.currentStock})</Text></Pressable>)}</View>
             <FormField label="Cantidad" keyboardType="decimal-pad" value={line.quantity} onChangeText={(quantity) => setLines(lines.map((item, index) => index === lineIndex ? { ...item, quantity } : item))} />
             {lines.length > 1 ? <MiniButton label="Quitar línea" tone="danger" onPress={() => setLines(lines.filter((_, index) => index !== lineIndex))} /> : null}
           </View>
@@ -110,6 +116,7 @@ export function SalesScreen({ session }: { session: AuthSession }) {
 const styles = StyleSheet.create({
   stat: { flex: 1, minWidth: 190 }, statLabel: { color: colors.textMuted, fontSize: 11 }, statValue: { color: colors.text, fontSize: 23, fontWeight: '800', marginTop: 8 },
   formLabel: { color: colors.textMuted, fontSize: 11, fontWeight: '800' },
+  search: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 12, paddingVertical: 10, fontSize: 12 },
   options: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   option: { maxWidth: 210, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, paddingVertical: 9 },
   optionActive: { borderColor: colors.primaryBright, backgroundColor: colors.primaryDark }, optionText: { color: colors.textMuted, fontSize: 10, fontWeight: '700' }, optionTextActive: { color: colors.text },

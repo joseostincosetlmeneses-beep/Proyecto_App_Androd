@@ -64,8 +64,11 @@ describe('Contracts & Validation Schemas', () => {
 
   it('valida los datos operativos de productos y contactos', () => {
     expect(CreateProductInputSchema.safeParse({
-      sku: 'SKU-1', barcode: '750000000001', name: 'Producto', costo: 10, precio: 15, stockMinimo: 2, initialStock: 5
+      sku: 'SKU-1', barcode: '750000000001', name: 'Producto', imageUrl: 'https://cdn.example.com/producto.jpg', costo: 10, precio: 15, stockMinimo: 2, initialStock: 5
     }).success).toBe(true);
+    expect(CreateProductInputSchema.safeParse({
+      sku: 'SKU-2', barcode: '750000000002', name: 'Producto', imageUrl: 'javascript:alert(1)', costo: 10, precio: 15, stockMinimo: 2, initialStock: 5
+    }).success).toBe(false);
     expect(CreateContactInputSchema.safeParse({ name: 'Cliente Uno', type: 'Cliente', email: 'cliente@example.com' }).success).toBe(true);
     expect(StockAdjustmentInputSchema.safeParse({ quantity: 0, reason: 'Conteo físico' }).success).toBe(false);
   });

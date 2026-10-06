@@ -4,14 +4,13 @@ import { Brand, IconButton, SearchField, StatusPill } from './ui';
 import { colors, radius, spacing } from '../theme';
 import type { AuthUser } from '../services/auth.client';
 
-export type ScreenKey = 'dashboard' | 'sales' | 'inventory' | 'contacts' | 'store' | 'reports' | 'profile';
+export type ScreenKey = 'dashboard' | 'sales' | 'inventory' | 'contacts' | 'reports' | 'profile';
 
 const navigation: Array<{ key: ScreenKey; label: string; glyph: string }> = [
   { key: 'dashboard', label: 'Dashboard', glyph: '⌂' },
   { key: 'sales', label: 'Ventas', glyph: '↗' },
   { key: 'inventory', label: 'Inventario', glyph: '◫' },
   { key: 'contacts', label: 'Contactos', glyph: '◎' },
-  { key: 'store', label: 'Tienda', glyph: '▣' },
   { key: 'reports', label: 'Reportes', glyph: '▤' },
   { key: 'profile', label: 'Perfil', glyph: '○' }
 ];

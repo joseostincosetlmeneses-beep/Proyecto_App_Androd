@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Card, MetricCard, SectionTitle, StatusPill } from '../components/ui';
 import type { AuthSession } from '../services/auth.client';
 import { getDashboard, getDataExportLink, seedSampleData, type DashboardSummary } from '../services/erp.client';
@@ -13,6 +13,9 @@ export function DashboardScreen({ session }: { session: AuthSession }) {
   const [actionMessage, setActionMessage] = useState('');
   const [actionBusy, setActionBusy] = useState(false);
   const firstName = session.user.name.trim().split(/\s+/)[0] || 'usuario';
+  const customerPageUrl = Platform.OS === 'web' && typeof window !== 'undefined'
+    ? `${window.location.origin}?store=${encodeURIComponent(session.user.tenantId)}`
+    : `https://proyecto-app-androd.joseostincosetlmeneses.workers.dev?store=${encodeURIComponent(session.user.tenantId)}`;
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -48,6 +51,20 @@ export function DashboardScreen({ session }: { session: AuthSession }) {
           <MiniButton label="Exportar Excel" disabled={actionBusy} onPress={() => void exportData('xlsx')} />
         </View>
       </Card>
+      <Card style={styles.actionCard}>
+        <View style={styles.actionCopy}>
+          <Text style={styles.actionTitle}>Página pública para clientes</Text>
+          <Text style={styles.actionDetail}>Es independiente del ERP. Tus clientes pueden ver imágenes, consultar existencias, agregar productos al carrito y enviarte pedidos.</Text>
+          <Text selectable style={styles.publicUrl}>{customerPageUrl}</Text>
+        </View>
+        <MiniButton label="Abrir página de clientes" onPress={() => void Linking.openURL(customerPageUrl)} />
+      </Card>
+      {data && (data.products < 1000 || data.customers < 1000) ? (
+        <Card style={styles.missingCard}>
+          <View style={styles.actionCopy}><Text style={styles.missingTitle}>La base todavía no está completa</Text><Text style={styles.actionDetail}>Actualmente hay {data.products} productos y {data.customers} clientes. Completa los 1,000 de cada uno sin duplicar los existentes.</Text></View>
+          <MiniButton label="Completar 1,000 + 1,000" disabled={actionBusy} tone="success" onPress={() => void loadSamples()} />
+        </Card>
+      ) : null}
       {actionMessage ? <Feedback empty={actionMessage} /> : null}
       {data ? (
         <>
@@ -95,5 +112,8 @@ const styles = StyleSheet.create({
   actionCard: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.md },
   actionCopy: { flex: 1, minWidth: 230 },
   actionTitle: { color: colors.text, fontSize: 15, fontWeight: '800' },
-  actionDetail: { color: colors.textMuted, fontSize: 11, lineHeight: 17, marginTop: 4 }
+  actionDetail: { color: colors.textMuted, fontSize: 11, lineHeight: 17, marginTop: 4 },
+  publicUrl: { color: colors.primaryBright, fontSize: 10, marginTop: 8 },
+  missingCard: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.md, borderColor: colors.warning },
+  missingTitle: { color: colors.warning, fontSize: 15, fontWeight: '900' }
 });

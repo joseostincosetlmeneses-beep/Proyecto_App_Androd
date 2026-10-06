@@ -57,6 +57,18 @@ router.get('/images/:sku.svg', (req, res) => {
   res.send(svg);
 });
 
+router.get('/product-images/:id', async (req, res, next) => {
+  try {
+    const parsedId = tenantIdSchema.safeParse(req.params.id);
+    if (!parsedId.success) throw new AppError(404, 'Imagen no encontrada.');
+    const product = await ProductModel.findById(parsedId.data).select('+imageData +imageMime').lean();
+    if (!product?.imageData || !product.imageMime) throw new AppError(404, 'Imagen no encontrada.');
+    res.setHeader('Content-Type', product.imageMime);
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(Buffer.from(product.imageData, 'base64'));
+  } catch (error) { next(error); }
+});
+
 router.get('/:tenantId/info', async (req, res, next) => {
   try {
     const parsedTenant = tenantIdSchema.safeParse(req.params.tenantId);
@@ -90,7 +102,9 @@ router.get('/:tenantId/products', async (req, res, next) => {
       data: products.map((product) => ({
         id: String(product._id), sku: product.sku, name: product.name, precio: product.precio,
         currentStock: stock.get(String(product._id)) ?? 0,
-        imageUrl: imageUrl(product.sku, product.imageUrl)
+        imageUrl: product.hasImage
+          ? `${env.PUBLIC_API_URL.replace(/\/$/, '')}/api/store/product-images/${String(product._id)}?v=${product.updatedAt.getTime()}`
+          : imageUrl(product.sku, product.imageUrl)
       })),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) }
     });

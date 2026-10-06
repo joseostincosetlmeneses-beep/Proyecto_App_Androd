@@ -17,7 +17,8 @@
     ],
     "plugins": [
       "expo-secure-store",
-      "expo-image"
+      "expo-image",
+      "expo-image-picker"
     ],
     "android": {
       "package": "com.joseostincos.orbiterp",

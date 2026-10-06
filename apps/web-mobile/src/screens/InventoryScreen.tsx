@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { Card, SectionTitle, StatusPill } from '../components/ui';
 import { ChoiceRow, FormField, FormModal } from '../components/FormModal';
 import type { AuthSession } from '../services/auth.client';
-import { adjustProductStock, createProduct, getProductPage, updateProduct, type NewProduct, type ProductRecord } from '../services/erp.client';
+import { adjustProductStock, createProduct, getProductPage, updateProduct, uploadProductImage, type NewProduct, type ProductRecord } from '../services/erp.client';
 import { colors } from '../theme';
 import { Feedback, messageFrom, MiniButton, money, ScreenHeading, screenStyles } from './shared';
 
@@ -27,6 +28,7 @@ export function InventoryScreen({ session }: { session: AuthSession }) {
   const [adjustment, setAdjustment] = useState({ quantity: '', reason: '' });
   const [modalError, setModalError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [pendingImage, setPendingImage] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -40,7 +42,20 @@ export function InventoryScreen({ session }: { session: AuthSession }) {
 
   function openProduct(product: ProductRecord | null) {
     setEditing(product); setModalError('');
+    setPendingImage('');
     setForm(product ? { sku: product.sku, barcode: product.barcode, name: product.name, imageUrl: product.imageUrl, costo: String(product.costo), precio: String(product.precio), stockMinimo: String(product.stockMinimo), initialStock: '0' } : emptyProduct);
+  }
+
+  async function chooseImage() {
+    setModalError('');
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, quality: 0.45, base64: true });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    if (!asset?.base64) { setModalError('No fue posible leer la imagen seleccionada.'); return; }
+    const mime = asset.mimeType && ['image/jpeg', 'image/png', 'image/webp'].includes(asset.mimeType) ? asset.mimeType : 'image/jpeg';
+    const data = `data:${mime};base64,${asset.base64}`;
+    if (data.length > 2_000_000) { setModalError('La imagen es demasiado grande. Elige una de menos de 1.5 MB.'); return; }
+    setPendingImage(data);
   }
 
   async function saveProduct() {
@@ -48,8 +63,10 @@ export function InventoryScreen({ session }: { session: AuthSession }) {
     if (!parsed.sku || !parsed.barcode || !parsed.name || Object.values(parsed).some((value) => typeof value === 'number' && (!Number.isFinite(value) || value < 0))) { setModalError('Completa los datos y usa cantidades válidas.'); return; }
     setBusy(true); setModalError('');
     try {
-      if (editing) await updateProduct(session, editing.id, { sku: parsed.sku, barcode: parsed.barcode, name: parsed.name, imageUrl: parsed.imageUrl, costo: parsed.costo, precio: parsed.precio, stockMinimo: parsed.stockMinimo });
-      else await createProduct(session, parsed);
+      const saved = editing
+        ? await updateProduct(session, editing.id, { sku: parsed.sku, barcode: parsed.barcode, name: parsed.name, imageUrl: parsed.imageUrl, costo: parsed.costo, precio: parsed.precio, stockMinimo: parsed.stockMinimo })
+        : await createProduct(session, parsed);
+      if (pendingImage) await uploadProductImage(session, saved.id, pendingImage);
       setEditing(undefined); await load();
     } catch (cause) { setModalError(messageFrom(cause)); }
     finally { setBusy(false); }
@@ -95,7 +112,11 @@ export function InventoryScreen({ session }: { session: AuthSession }) {
         <FormField label="Nombre" value={form.name} onChangeText={(name) => setForm({ ...form, name })} />
         <FormField label="SKU" autoCapitalize="characters" value={form.sku} onChangeText={(sku) => setForm({ ...form, sku })} />
         <FormField label="Código de barras" value={form.barcode} onChangeText={(barcode) => setForm({ ...form, barcode })} />
-        <FormField label="URL de imagen (opcional)" autoCapitalize="none" value={form.imageUrl} onChangeText={(imageUrl) => setForm({ ...form, imageUrl })} />
+        <Text style={styles.imageLabel}>Imagen del producto</Text>
+        <View style={styles.imageEditor}>
+          <Image source={{ uri: pendingImage || form.imageUrl }} style={styles.imagePreview} contentFit="cover" />
+          <View style={styles.imageCopy}><Text style={styles.imageHint}>Selecciona una foto desde tu computadora o celular. Se mostrará también en la página pública para clientes.</Text><MiniButton label={pendingImage ? 'Cambiar imagen' : 'Seleccionar imagen'} onPress={() => void chooseImage()} /></View>
+        </View>
         <FormField label="Costo" keyboardType="decimal-pad" value={form.costo} onChangeText={(costo) => setForm({ ...form, costo })} />
         <FormField label="Precio de venta" keyboardType="decimal-pad" value={form.precio} onChangeText={(precio) => setForm({ ...form, precio })} />
         <FormField label="Stock mínimo" keyboardType="decimal-pad" value={form.stockMinimo} onChangeText={(stockMinimo) => setForm({ ...form, stockMinimo })} />
@@ -113,6 +134,10 @@ const styles = StyleSheet.create({
   stat: { flex: 1, minWidth: 190 }, statLabel: { color: colors.textMuted, fontSize: 11 }, statValue: { color: colors.text, fontSize: 24, fontWeight: '800', marginTop: 9 },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   productImage: { width: 58, height: 46, borderRadius: 12, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
+  imageLabel: { color: colors.textMuted, fontSize: 11, fontWeight: '800' },
+  imageEditor: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
+  imagePreview: { width: 112, height: 82, borderRadius: 14, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
+  imageCopy: { flex: 1, minWidth: 190, gap: 8 }, imageHint: { color: colors.textMuted, fontSize: 10, lineHeight: 15 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   searchInput: { flex: 1, minWidth: 180, height: 42, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 13 },
   pagination: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 10, paddingTop: 16 },

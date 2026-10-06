@@ -8,7 +8,6 @@ const commands: Array<{ label: string; hint: string; screen: ScreenKey; glyph: s
   { label: 'Consultar ventas', hint: 'Facturas y cobros', screen: 'sales', glyph: '↗' },
   { label: 'Revisar inventario', hint: 'Existencias y alertas', screen: 'inventory', glyph: '◫' },
   { label: 'Buscar contactos', hint: 'Clientes y proveedores', screen: 'contacts', glyph: '◎' },
-  { label: 'Abrir tienda', hint: 'Catálogo, carrito y pedidos web', screen: 'store', glyph: '▣' },
   { label: 'Consultar reportes', hint: 'Indicadores, PDF y Excel', screen: 'reports', glyph: '▤' },
   { label: 'Estado del sistema', hint: 'Perfil y conexión', screen: 'profile', glyph: '○' }
 ];

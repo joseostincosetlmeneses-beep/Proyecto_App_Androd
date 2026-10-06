@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Brand, Card } from '../components/ui';
 import { createStoreOrder, getStoreInfo, getStoreProducts, type StoreInfo, type StoreProduct } from '../services/erp.client';
@@ -8,7 +8,7 @@ import { Feedback, messageFrom, MiniButton, money } from './shared';
 
 type Cart = Record<string, number>;
 
-export function StorefrontScreen({ tenantId, embedded = false }: { tenantId: string; embedded?: boolean }) {
+export function StorefrontScreen({ tenantId }: { tenantId: string }) {
   const { width } = useWindowDimensions();
   const [store, setStore] = useState<StoreInfo | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
@@ -69,19 +69,14 @@ export function StorefrontScreen({ tenantId, embedded = false }: { tenantId: str
     finally { setBusy(false); }
   }
 
-  const publicUrl = Platform.OS === 'web' && typeof window !== 'undefined'
-    ? `${window.location.origin}?store=${encodeURIComponent(tenantId)}`
-    : `https://proyecto-app-androd.joseostincosetlmeneses.workers.dev?store=${encodeURIComponent(tenantId)}`;
-
   return (
-    <View style={[styles.page, embedded && styles.embedded]}>
+    <View style={styles.page}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Brand />
           <View style={styles.headerCopy}><Text style={styles.eyebrow}>TIENDA CONECTADA</Text><Text style={styles.title}>{store?.name ?? 'Catálogo empresarial'}</Text><Text style={styles.subtitle}>Compra productos con existencias sincronizadas en tiempo real con Orbit ERP.</Text></View>
           <View style={styles.cartBadge}><Text style={styles.cartNumber}>{itemCount}</Text><Text style={styles.cartLabel}>en carrito</Text></View>
         </View>
-        {embedded ? <Card style={styles.adminCard}><View style={styles.grow}><Text style={styles.adminTitle}>Vista para tus clientes</Text><Text selectable style={styles.adminUrl}>{publicUrl}</Text></View><MiniButton label="Abrir tienda pública" onPress={() => void Linking.openURL(publicUrl)} /></Card> : null}
         <Feedback loading={loading} error={error} empty={success} />
         <View style={styles.searchRow}><TextInput value={query} onChangeText={setQuery} onSubmitEditing={() => { setPage(1); setSearch(query.trim()); }} placeholder="Buscar productos" placeholderTextColor={colors.textDim} style={styles.searchInput} /><MiniButton label="Buscar" onPress={() => { setPage(1); setSearch(query.trim()); }} /></View>
         <Text style={styles.catalogCount}>{total} productos disponibles en el catálogo</Text>
@@ -116,14 +111,13 @@ export function StorefrontScreen({ tenantId, embedded = false }: { tenantId: str
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, minHeight: '100%', backgroundColor: colors.background }, embedded: { minHeight: 0 },
+  page: { flex: 1, minHeight: '100%', backgroundColor: colors.background },
   content: { width: '100%', maxWidth: 1240, alignSelf: 'center', padding: spacing.lg, paddingBottom: 100, gap: spacing.lg },
   header: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.lg, paddingVertical: spacing.lg },
   headerCopy: { flex: 1, minWidth: 240 }, eyebrow: { color: colors.primaryBright, fontSize: 10, fontWeight: '900', letterSpacing: 1.6 },
   title: { color: colors.text, fontSize: 32, fontWeight: '900', marginTop: 7 }, subtitle: { color: colors.textMuted, fontSize: 13, marginTop: 8, lineHeight: 20 },
   cartBadge: { minWidth: 92, padding: 12, borderRadius: radius.md, backgroundColor: colors.primaryDark, borderWidth: 1, borderColor: colors.primaryBright, alignItems: 'center' },
   cartNumber: { color: colors.text, fontSize: 23, fontWeight: '900' }, cartLabel: { color: colors.textMuted, fontSize: 9 },
-  adminCard: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12 }, grow: { flex: 1, minWidth: 220 }, adminTitle: { color: colors.text, fontWeight: '800' }, adminUrl: { color: colors.primaryBright, fontSize: 10, marginTop: 6 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 }, searchInput: { flex: 1, height: 44, borderRadius: 13, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14 },
   catalogCount: { color: colors.textMuted, fontSize: 11 }, catalog: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   productCard: { minWidth: 210, flexGrow: 1, maxWidth: 285, gap: 8 }, productImage: { width: '100%', height: 145, borderRadius: radius.md, backgroundColor: colors.surface },

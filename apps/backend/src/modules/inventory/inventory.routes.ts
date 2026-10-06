@@ -6,10 +6,11 @@ import {
   StockAdjustmentInputSchema,
   UpdateProductInputSchema
 } from '@erp/contracts';
+import { z } from 'zod';
 import { AppError } from '../../core/errors/app-error.js';
 import { requireRoles } from '../../core/middlewares/auth.middleware.js';
 import { validateRequest } from '../../core/middlewares/validation.middleware.js';
-import { adjustStock, createProduct, listProducts, updateProduct } from './inventory.service.js';
+import { adjustStock, createProduct, listProducts, saveProductImage, updateProduct } from './inventory.service.js';
 
 const router: Router = Router();
 
@@ -47,6 +48,19 @@ router.patch(
     try {
       if (!req.tenantId) throw new AppError(400, 'Tenant requerido');
       const product = await updateProduct(req.tenantId, String(req.params.id), req.body);
+      res.json({ success: true, data: product });
+    } catch (error) { next(error); }
+  }
+);
+
+router.post(
+  '/products/:id/image',
+  requireRoles('admin', 'inventory'),
+  validateRequest({ params: ResourceIdParamsSchema, body: z.object({ imageData: z.string().max(2_100_000) }) }),
+  async (req, res, next) => {
+    try {
+      if (!req.tenantId) throw new AppError(400, 'Tenant requerido');
+      const product = await saveProductImage(req.tenantId, String(req.params.id), String(req.body.imageData));
       res.json({ success: true, data: product });
     } catch (error) { next(error); }
   }

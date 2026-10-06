@@ -23,6 +23,14 @@ export function SalesScreen({ session }: { session: AuthSession }) {
   const [customerQuery, setCustomerQuery] = useState('');
   const [productQuery, setProductQuery] = useState('');
 
+  const loadInvoices = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setError('');
+    try { setInvoices(await getInvoices(session)); }
+    catch (cause) { setError(messageFrom(cause)); }
+    finally { if (showLoading) setLoading(false); }
+  }, [session]);
+
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
@@ -31,7 +39,11 @@ export function SalesScreen({ session }: { session: AuthSession }) {
     } catch (cause) { setError(messageFrom(cause)); }
     finally { setLoading(false); }
   }, [session]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+    const timer = setInterval(() => { void loadInvoices(false); }, 10_000);
+    return () => clearInterval(timer);
+  }, [load, loadInvoices]);
 
   function openCreate() { setCustomerId(''); setLines([{ productId: '', quantity: '1' }]); setCustomerQuery(''); setProductQuery(''); setModalError(''); setCreating(true); }
 
@@ -54,7 +66,7 @@ export function SalesScreen({ session }: { session: AuthSession }) {
 
   async function changeStatus(invoice: InvoiceRecord, status: 'paid' | 'cancelled') {
     setError('');
-    try { await setInvoiceStatus(session, invoice.id, status); await load(); } catch (cause) { setError(messageFrom(cause)); }
+    try { await setInvoiceStatus(session, invoice.id, status); await loadInvoices(); } catch (cause) { setError(messageFrom(cause)); }
   }
 
   async function openDocument(invoice: InvoiceRecord) {
@@ -71,6 +83,7 @@ export function SalesScreen({ session }: { session: AuthSession }) {
     <>
       <ScrollView contentContainerStyle={screenStyles.content} showsVerticalScrollIndicator={false}>
         <ScreenHeading eyebrow="VENTAS Y DOCUMENTOS" title="Facturas" subtitle="Registra ventas, actualiza pagos y genera documentos PDF." action="Nueva factura" onAction={openCreate} />
+        <View style={styles.refreshRow}><Text style={styles.refreshHint}>Las compras simuladas aparecen automáticamente en un máximo de 10 segundos.</Text><MiniButton label="Actualizar ventas" onPress={() => void loadInvoices()} /></View>
         <Feedback loading={loading} error={error} />
         <View style={screenStyles.grid}>
           <Card style={styles.stat}><Text style={styles.statLabel}>Ventas registradas</Text><Text style={styles.statValue}>{money(sales)}</Text></Card>
@@ -81,7 +94,7 @@ export function SalesScreen({ session }: { session: AuthSession }) {
           <SectionTitle title="Facturas" action={`${invoices.length} registros`} />
           {!loading && invoices.length === 0 ? <Feedback empty="Aún no hay facturas. Registra productos y clientes para emitir la primera." /> : invoices.map((invoice, index) => (
             <View key={invoice.id} style={[screenStyles.row, index === invoices.length - 1 && screenStyles.rowLast]}>
-              <View style={screenStyles.rowCopy}><Text style={screenStyles.rowTitle}>{invoice.number}</Text><Text style={screenStyles.rowDetail}>{invoice.customer.name} · {shortDate(invoice.issuedAt)}</Text></View>
+              <View style={screenStyles.rowCopy}><Text style={screenStyles.rowTitle}>{invoice.number}</Text><Text style={screenStyles.rowDetail}>{invoice.customer.name} · {shortDate(invoice.issuedAt)}{invoice.number.startsWith('SIM-WEB-') ? ' · Compra web simulada' : ''}</Text></View>
               <Text style={screenStyles.value}>{money(invoice.total)}</Text>
               <StatusPill label={invoice.status === 'paid' ? 'Pagada' : invoice.status === 'cancelled' ? 'Cancelada' : 'Pendiente'} tone={invoice.status === 'paid' ? 'success' : invoice.status === 'cancelled' ? 'danger' : 'warning'} />
               <View style={screenStyles.actions}>
@@ -116,6 +129,7 @@ export function SalesScreen({ session }: { session: AuthSession }) {
 const styles = StyleSheet.create({
   stat: { flex: 1, minWidth: 190 }, statLabel: { color: colors.textMuted, fontSize: 11 }, statValue: { color: colors.text, fontSize: 23, fontWeight: '800', marginTop: 8 },
   formLabel: { color: colors.textMuted, fontSize: 11, fontWeight: '800' },
+  refreshRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }, refreshHint: { color: colors.textMuted, fontSize: 10, flex: 1, minWidth: 190 },
   search: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 12, paddingVertical: 10, fontSize: 12 },
   options: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   option: { maxWidth: 210, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, paddingVertical: 9 },

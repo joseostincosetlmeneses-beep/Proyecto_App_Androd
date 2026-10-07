@@ -82,10 +82,10 @@ export function MetricCard({
         <View style={[styles.metricIcon, { borderColor: `${color}45`, backgroundColor: `${color}16` }]}>
           <Text style={[styles.metricIconText, { color }]}>{icon}</Text>
         </View>
-        <Text style={[styles.metricDelta, { color }]}>{delta}</Text>
+        <Text numberOfLines={1} style={[styles.metricDelta, { color }]}>{delta}</Text>
       </View>
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricLabel}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.58} style={styles.metricValue}>{value}</Text>
+      <Text numberOfLines={1} style={styles.metricLabel}>{label}</Text>
     </Card>
   );
 }
@@ -160,12 +160,12 @@ const styles = StyleSheet.create({
   pill: { alignSelf: 'flex-start', maxWidth: '100%', flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 5 },
   pillDot: { width: 5, height: 5, borderRadius: 3 },
   pillText: { fontSize: 10, fontWeight: '700', flexShrink: 1 },
-  metricCard: { flex: 1, minWidth: 150, minHeight: 142, justifyContent: 'space-between' },
+  metricCard: { flexGrow: 1, flexShrink: 1, flexBasis: 150, minWidth: 150, height: 154, maxHeight: 154, justifyContent: 'space-between', overflow: 'hidden' },
   metricTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   metricIcon: { width: 36, height: 36, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   metricIconText: { fontSize: 18, fontWeight: '700' },
   metricDelta: { flex: 1, textAlign: 'right', fontSize: 10, fontWeight: '600' },
-  metricValue: { color: colors.text, fontSize: 25, fontWeight: '700', marginTop: 14 },
+  metricValue: { width: '100%', color: colors.text, fontSize: 25, lineHeight: 31, fontWeight: '700', marginTop: 12 },
   metricLabel: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
   search: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 13, flex: 1, maxWidth: 440 },
   searchIcon: { color: colors.textMuted, fontSize: 20 },

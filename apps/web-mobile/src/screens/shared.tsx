@@ -70,7 +70,7 @@ export function Feedback({ loading, error, empty }: { loading?: boolean; error?:
 
 export const screenStyles = StyleSheet.create({
   content: { width: '100%', maxWidth: 1180, alignSelf: 'center', padding: spacing.md, paddingBottom: 110, gap: spacing.lg },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: spacing.md },
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.md, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border },
   rowLast: { borderBottomWidth: 0 },
   rowCopy: { flex: 1, minWidth: 120 },
